@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/home_navigation_user"
+    app:startDestination="@id/homeFragment">
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.woodometer.fragments.HomeScreenFragment"
+        android:label="Home"
+        tools:layout="@layout/fragment_home_screen">
+    </fragment>
+
+    <fragment
+        android:id="@+id/createCircleFragment"
+        android:name="com.example.woodometer.fragments.AddCircleFragment"
+        android:label="Calendar"
+        tools:layout="@layout/fragment_add_circle" />
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.woodometer.fragments.ToDoFragment"
+        android:label="Inbox"
+        tools:layout="@layout/fragment_to_do" />
+    <fragment
+        android:id="@+id/dataFragment"
+        android:name="com.example.woodometer.fragments.ToDoFragment"
+        android:label="Notifications"
+        tools:layout="@layout/fragment_to_do" />
+</navigation>

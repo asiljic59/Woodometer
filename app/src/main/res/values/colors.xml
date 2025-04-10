@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="black90">#333333</color>
+    <color name="lavander">#A77BCA</color>
+    <color name="light_gray">#F5F5F5</color>
+    <color name="text_color">#1D1D1D</color>
+    <color name="bottom_card">#D1C4E9</color>
+    <color name="top_card">#6F6666</color>
+    <color name="olive">#A1C084</color>
+    <color name="background">#181818</color>
+    <color name="olive_navbar_highlight">#80800080</color>
+    <color name="deactivate_color">#FF4444</color>
+    <color name="forest_green">#556B2F</color>
+</resources>
