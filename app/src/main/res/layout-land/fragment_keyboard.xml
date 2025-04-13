@@ -212,16 +212,34 @@
             android:id="@+id/textViewText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Precnik"
             android:textSize="22sp" />
 
-        <TextView
-            android:id="@+id/tvInput"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="25dp"
-            android:text="00"
-            android:textSize="26sp" />
+            android:layout_marginTop="20dp">
+
+            <TextView
+                android:id="@+id/tvInput"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:text="00"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/measurementUnitTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/tvInput"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <Button
             android:id="@+id/btnSave"

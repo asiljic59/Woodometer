@@ -7,11 +7,14 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.fragment.app.replace
 import com.example.woodometer.R
 import com.example.woodometer.interfaces.AddOptionListener
 import com.example.woodometer.interfaces.KeyboardListener
+import com.example.woodometer.model.enumerations.KeyboardField
 import com.example.woodometer.model.enumerations.ListOptionsField
 
 // TODO: Rename parameter arguments, choose names that match
@@ -31,15 +34,13 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener  {
 
     private lateinit var currentInputField : TextView
     private lateinit var currentOptionField : TextView
+    private lateinit var currentOptionsFile : String
 
     //polja koja otvaraju tastaturu
-    private lateinit var keyboardTextViews : HashMap<ConstraintLayout,TextView>
+    private lateinit var keyboardTextViews : HashMap<ConstraintLayout,Triple<TextView,String,KeyboardField>>
 
     //polja koja otvaraju opcije
-    private lateinit var optionsTextViews : HashMap<ConstraintLayout,TextView>
-
-    //svaka promenljiva koja ima izbore mora imati i negde sacuvane izbore, tako da ovde cuvamo imena fajlova korelaciono sa atributima (poljima za tekst)
-    private lateinit var optionsFileNames: HashMap<TextView,Pair<String,ListOptionsField>>
+    private lateinit var optionsTextViews : HashMap<ConstraintLayout,Triple<TextView,String,ListOptionsField>>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +56,12 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener  {
     ): View? {
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_start_measuring, container, false)
+
+        val krugButton = view.findViewById<Button>(R.id.krugoviButton)
+
+        krugButton.setOnClickListener{
+            parentFragmentManager.beginTransaction().replace(R.id.main,CircleFragment()).addToBackStack(null).commit()
+        }
 
 
 
@@ -74,17 +81,12 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener  {
         val odeljenjeTextView = view.findViewById<TextView>(R.id.odeljenjeTextView)
 
         keyboardTextViews = hashMapOf(
-            odeljenjeLayout to odeljenjeTextView
+            odeljenjeLayout to Triple(odeljenjeTextView,"ODELJENJE",KeyboardField.ODELJENJE)
         )
         optionsTextViews = hashMapOf(
-            gazdinskaLayout to gazdinskaTextView,
-            odsekLayout to odsekTextView,
-            korisnikLayout to korisnikTextView
-        )
-        optionsFileNames = hashMapOf(
-            gazdinskaTextView to Pair("gazdinske_jed",ListOptionsField.GAZDINSKA_JED),
-            odsekTextView to Pair("odseci",ListOptionsField.ODSEK),
-            korisnikTextView to Pair("korisnici",ListOptionsField.KORISNIK)
+            gazdinskaLayout to Triple(gazdinskaTextView,"gazdinske_jed",ListOptionsField.GAZDINSKA_JED),
+            odsekLayout to Triple(odsekTextView,"odseci",ListOptionsField.ODSEK),
+            korisnikLayout to Triple(korisnikTextView,"korisnici",ListOptionsField.KORISNIK)
         )
 
         setupInputKeyboardClickListeners(keyboardTextViews)
@@ -113,28 +115,31 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener  {
             }
     }
 
-    private fun setupInputKeyboardClickListeners(inputFields: HashMap<ConstraintLayout,TextView>) {
+    private fun setupInputKeyboardClickListeners(inputFields: HashMap<ConstraintLayout,Triple<TextView,String,KeyboardField>>) {
         inputFields.keys.forEach { layout ->
             layout.setOnClickListener(){
-                currentInputField = keyboardTextViews[layout]!!
-                openKeyboard()
+                currentInputField = keyboardTextViews[layout]?.first!!
+                openKeyboard(layout)
             }
         }
     }
 
-    private fun setupOptionsClickListener(optionFields: HashMap<ConstraintLayout,TextView>){
+    private fun setupOptionsClickListener(optionFields: HashMap<ConstraintLayout,Triple<TextView,String,ListOptionsField>>){
         optionFields.keys.forEach{ layout ->
             layout.setOnClickListener(){
-                currentOptionField = optionFields[layout]!!
-                openOptions()
+                currentOptionField = optionFields[layout]?.first!!
+                currentOptionsFile = optionFields[layout]?.second!!
+                openOptions(layout)
             }
         }
     }
 
     //otvaranje tastature
-    fun openKeyboard(){
+    fun openKeyboard(layout: ConstraintLayout){
         val keyboardFragment = KeyboardFragment().apply {
             setKeyboardListener(this@StartMeasuringFragment)
+            keyboardTextViews[layout]?.let { setTitle(it.second) }
+            keyboardTextViews[layout]?.third?.let { setField(it) }
         }
         currentInputField.text = ""
         parentFragmentManager.beginTransaction()
@@ -142,12 +147,11 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener  {
             .addToBackStack(null)
             .commit()
     }
-
-    fun openOptions(){
+    fun openOptions(layout: ConstraintLayout){
         val options : List<String> = getListFromPrefs()
         val optionsFragment = ListOptionsFragment().apply {
             setListItems(options)
-            setOptionField(optionsFileNames[currentOptionField]?.second)
+            setOptionField(optionsTextViews[layout]?.third)
             setListener(this@StartMeasuringFragment)
         }
         optionsFragment.show(parentFragmentManager,null)
@@ -155,7 +159,7 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener  {
 
     fun getListFromPrefs(): MutableList<String> {
         val sharedPrefs = context?.getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
-        val joined = sharedPrefs?.getString(optionsFileNames[currentOptionField]?.first, "") ?: ""
+        val joined = sharedPrefs?.getString(currentOptionsFile, "") ?: ""
 
         // If the joined string is not empty, split it and return a mutable list, else return an empty mutable list
         return if (joined.isNotEmpty()) {
@@ -167,11 +171,11 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener  {
     fun saveListToPrefs(context: Context?, list: MutableList<String>) {
         val sharedPrefs = context?.getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
         val joined = list.joinToString(",") // e.g. "123,456,789"
-        sharedPrefs?.edit()?.putString(optionsFileNames[currentOptionField]?.first, joined)?.apply()
+        sharedPrefs?.edit()?.putString(currentOptionsFile, joined)?.apply()
     }
 
     override fun onKeyPressed(key: String) {
-        currentInputField.append(key)
+        TODO()
     }
 
     override fun onEnterPressed(input: String) {

@@ -174,9 +174,10 @@
             <LinearLayout
                 android:id="@+id/buttonsLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="50dp"
                 android:layout_gravity="bottom|end"
                 android:layout_marginBottom="2dp"
+                android:gravity="left|center_vertical"
                 android:orientation="horizontal">
 
                 <ImageButton
@@ -261,7 +262,7 @@
             </LinearLayout>
 
             <Button
-                android:id="@+id/button2"
+                android:id="@+id/krugoviButton"
                 android:layout_width="200dp"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/top_card"
