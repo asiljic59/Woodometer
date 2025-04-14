@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
+import androidx.fragment.app.DialogFragment
 import com.example.woodometer.R
 import com.example.woodometer.interfaces.KeyboardListener
 import com.example.woodometer.model.enumerations.KeyboardField
@@ -26,7 +27,7 @@ private const val UPPER_DISTANCE_VALUE_UNDER_10 = 7.98
  * Use the [KeyboardFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class KeyboardFragment : Fragment() {
+class KeyboardFragment : DialogFragment() {
     // TODO: Rename and change types of parameters
     private var text: String? = null
     private var diameter: Boolean? = null
@@ -166,13 +167,26 @@ class KeyboardFragment : Fragment() {
         }else if(field == KeyboardField.RAZDALJINA){
             return isDistanceValid()
         }else if(field == KeyboardField.VISINA || field == KeyboardField.DUZINA_DEBLA){
-            return isVisinaValid()
+            return isHeightValid()
+        }else if(field == KeyboardField.POLOZAJ_STABLA){
+            return isPositionValid()
         }
 
         return true
     }
 
-    private fun isVisinaValid(): Boolean {
+    private fun isPositionValid(): Boolean {
+        try{
+            val number = currentInput.toString().toInt()
+            if (number<1 || number >4){throw NumberFormatException()}
+        }catch (e: NumberFormatException){
+            Toast.makeText(context,"Pozicija stabla mora biti brojevna vrednost u opsegu 1-4!",Toast.LENGTH_SHORT).show()
+            return false
+        }
+        return true
+    }
+
+    private fun isHeightValid(): Boolean {
         try{
             val number = currentInput.toString().toInt()
             currentInput = StringBuilder(currentInput.toString().toInt().toString())
@@ -185,11 +199,11 @@ class KeyboardFragment : Fragment() {
 
     private fun isDistanceValid(): Boolean {
         try{
-            val number = currentInput.toString().toInt()
+            val number = currentInput.toString().toDouble()
             if (number < 0  || number > UPPER_DISTANCE_VALUE_OVER_30){throw NumberFormatException()}
             currentInput = StringBuilder(currentInput.toString().toInt().toString())
         }catch (e : NumberFormatException){
-            Toast.makeText(context,"${title} mora biti vrednost u opsegu 0-3!",Toast.LENGTH_SHORT).show()
+            Toast.makeText(context,"Razdaljina mora biti brojevna vrednost manja od 12.62",Toast.LENGTH_SHORT).show()
             return false
         }
         return true
@@ -225,7 +239,7 @@ class KeyboardFragment : Fragment() {
     fun isDecimalValid() : Boolean{
         try{
             val number = currentInput.toString().toDouble()
-            if (hasMoreThanOneDecimal(number)){throw NumberFormatException()}
+            if (hasMoreThanOneDecimal(number)){currentInput= StringBuilder(trimToOneDecimal(number).toString())}
             currentInput = StringBuilder(currentInput.toString().toDouble().toString())
         }catch (e : NumberFormatException){
             Toast.makeText(context,"$title mora biti izražen u centimetrima na najviše jednu decimalu!",Toast.LENGTH_SHORT).show()
@@ -237,5 +251,9 @@ class KeyboardFragment : Fragment() {
         val text = number.toString()
         val decimalIndex = text.indexOf('.')
         return decimalIndex != -1 && text.length - decimalIndex > 2
+    }
+
+    fun trimToOneDecimal(number: Double): Double {
+        return "%.1f".format(number).toDouble()
     }
 }

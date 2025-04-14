@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id 'kotlin-kapt'  // Moved here to consolidate all plugins
 }
 
 android {
@@ -9,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.woodometer"
-        minSdk 30
+        minSdk 26
         targetSdk 34
         versionCode 1
         versionName "1.0"
@@ -27,12 +28,15 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
+    kotlinOptions {
+        jvmTarget = '11'
+    }
+    buildFeatures {
+        dataBinding true
+    }
     packagingOptions {
         exclude 'META-INF/androidx.cardview_cardview.version'
         exclude 'META-INF/*.version'
-    }
-    kotlinOptions {
-        jvmTarget = '11'
     }
 }
 
@@ -45,7 +49,11 @@ dependencies {
     implementation libs.androidx.navigation.fragment.ktx
     implementation libs.androidx.navigation.ui.ktx
     implementation libs.cardview.v7
+    implementation libs.androidx.legacy.support.v4
+    implementation libs.androidx.recyclerview
+
     testImplementation libs.junit
     androidTestImplementation libs.androidx.junit
     androidTestImplementation libs.androidx.espresso.core
+
 }

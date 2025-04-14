@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.replace
@@ -61,6 +62,11 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener  {
 
         krugButton.setOnClickListener{
             parentFragmentManager.beginTransaction().replace(R.id.main,CircleFragment()).addToBackStack(null).commit()
+        }
+
+        val backButton = view.findViewById<ImageButton>(R.id.backButton)
+        backButton.setOnClickListener{
+            parentFragmentManager.popBackStack()
         }
 
 

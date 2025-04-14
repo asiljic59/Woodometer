@@ -11,4 +11,5 @@ enum class KeyboardField {
     SOCIJALNI_STATUS,
     TEHNICKA_KLASA,
     PROBNA_DOZNAKA,
+    POLOZAJ_STABLA,
 }

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+
+    <!-- Solid background (optional) -->
+    <solid android:color="#FFFFFF" />
+
+    <!-- Border -->
+    <stroke
+        android:width="4dp"
+        android:color="@color/top_card" /> <!-- Red border -->
+
+    <!-- Make it a perfect circle (match width/height) -->
+    <size
+        android:width="40dp"
+        android:height="40dp" />
+</shape>

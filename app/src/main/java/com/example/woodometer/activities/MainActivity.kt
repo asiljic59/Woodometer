@@ -6,6 +6,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.databinding.BindingAdapter
+import androidx.databinding.InverseBindingAdapter
 import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.replace
 import androidx.navigation.NavController
@@ -16,6 +18,7 @@ import com.example.woodometer.fragments.CircleFragment
 import com.example.woodometer.fragments.HomeScreenFragment
 import com.example.woodometer.fragments.KeyboardFragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.textfield.TextInputEditText
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,4 +35,6 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction().replace(R.id.main, HomeScreenFragment()).commit()
 
     }
+
+
 }

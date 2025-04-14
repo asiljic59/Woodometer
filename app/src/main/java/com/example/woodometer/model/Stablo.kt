@@ -1,19 +1,16 @@
 package com.example.woodometer.model
-
-import com.example.woodometer.model.enumerations.VrsteDrveca
-
 class Stablo(
-    var rbr: Int,
-    var vrsta : VrsteDrveca,
-    var azimut : Int,
-    var razdaljina: Float,
-    var precnik : Float,
-    var visina: Int,
-    var duzDebla: Int,
-    //var socStatus:
-    //var stepSusenja
-    //var tehKlasa
-    //var probDoznaka TO DO
+    var rbr: Int = 0,
+    var vrsta: Int = 0,
+    var azimut: Int = 0,
+    var razdaljina: Float = 0f,
+    var precnik: Float = 0f,
+    var visina: Int = 0,
+    var duzDebla: Int = 0,
+    var socStatus: Int = 0,
+    var stepSusenja: Int = 0,
+    var tehKlasa: Int = 0,
+    var probDoznaka: Int = 30
 ) {
 
 }

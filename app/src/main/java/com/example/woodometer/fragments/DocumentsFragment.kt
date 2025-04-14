@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import com.example.woodometer.R
 
 // TODO: Rename parameter arguments, choose names that match
@@ -35,7 +36,13 @@ class DocumentsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_documents, container, false)
+        val view = inflater.inflate(R.layout.fragment_documents, container, false)
+
+        val backButton = view.findViewById<ImageButton>(R.id.backButton)
+        backButton.setOnClickListener{
+            parentFragmentManager.popBackStack()
+        }
+        return view;
     }
 
     companion object {
