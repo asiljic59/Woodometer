@@ -180,9 +180,6 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener  {
         sharedPrefs?.edit()?.putString(currentOptionsFile, joined)?.apply()
     }
 
-    override fun onKeyPressed(key: String) {
-        TODO()
-    }
 
     override fun onEnterPressed(input: String) {
         currentInputField.text = input

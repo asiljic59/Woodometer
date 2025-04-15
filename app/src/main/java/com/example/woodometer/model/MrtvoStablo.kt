@@ -1,10 +1,10 @@
 package com.example.woodometer.model
 
-class MrtvoStablo(
-    var rbr: Int,
-    var vrsta: Int,
-    var polozaj: Int,
-    var precnik: Float,
-    var visina: Int
+data class MrtvoStablo(
+    var rbr: Int = 1,
+    var vrsta: Int = 11,
+    var polozaj: Int = 1,
+    var precnik: Float = 0f,
+    var visina: Int = 0
 ) {
 }

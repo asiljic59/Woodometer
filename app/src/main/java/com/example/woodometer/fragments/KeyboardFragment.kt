@@ -27,7 +27,7 @@ private const val UPPER_DISTANCE_VALUE_UNDER_10 = 7.98
  * Use the [KeyboardFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class KeyboardFragment : DialogFragment() {
+class KeyboardFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var text: String? = null
     private var diameter: Boolean? = null

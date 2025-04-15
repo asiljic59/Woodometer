@@ -10,7 +10,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.woodometer.R
+import com.example.woodometer.activities.MainActivity
 import com.example.woodometer.adapters.DeadTreesAdapter
+import com.example.woodometer.interfaces.TreeListener
+import com.example.woodometer.model.MrtvoStablo
 import com.example.woodometer.viewmodels.KrugViewModel
 
 // TODO: Rename parameter arguments, choose names that match
@@ -23,7 +26,7 @@ private const val ARG_PARAM2 = "param2"
  * Use the [DeadTreesFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class DeadTreesFragment : Fragment() {
+class DeadTreesFragment : Fragment(),TreeListener {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
@@ -50,11 +53,13 @@ class DeadTreesFragment : Fragment() {
         krugViewModel = ViewModelProvider(requireActivity())[KrugViewModel::class.java]
 
         view.findViewById<Button>(R.id.addButton).setOnClickListener{
-            val addTreeFragment = AddDeadTreeFragment()
-            addTreeFragment.show(parentFragmentManager,null)
+            val addTreeFragment = AddDeadTreeFragment().apply {
+                setAddition(true)
+            }
+            parentFragmentManager.beginTransaction().add(R.id.main,addTreeFragment).addToBackStack(null).commit()
         }
         recyclerView = view.findViewById(R.id.deadTreesRecyclerView)
-        adapter = krugViewModel.trenutnaMrtvaStabla.value?.let { DeadTreesAdapter(it) }!!
+        adapter = krugViewModel.trenutnaMrtvaStabla.value?.let { DeadTreesAdapter(it,this@DeadTreesFragment) }!!
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = adapter
 
@@ -88,5 +93,24 @@ class DeadTreesFragment : Fragment() {
                     putString(ARG_PARAM2, param2)
                 }
             }
+    }
+
+    //brisanje mrtvog stabla
+    override fun deleteTree(rbr: Int) {
+        val activity = requireActivity() as MainActivity
+        activity.showDeleteConfirmationDialog(this,rbr)
+    }
+
+    //portvrda brisanja iz aktivnosti
+    override fun deleteConfirmed(deleted: Boolean,rbr : Int) {
+        if (deleted){krugViewModel.deleteMrtvoStablo(rbr)}
+    }
+    //azuriranje mrtvog stabla
+    override fun editTree(item: MrtvoStablo) {
+        krugViewModel.setMrtvoStabloToEdit(item)
+        val addTreeFragment = AddDeadTreeFragment().apply {
+            setAddition(false)
+        }
+        parentFragmentManager.beginTransaction().add(R.id.main,addTreeFragment).addToBackStack(null).commit()
     }
 }

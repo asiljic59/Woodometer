@@ -1,5 +1,6 @@
 package com.example.woodometer.fragments
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -9,6 +10,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.replace
 import androidx.lifecycle.ViewModelProvider
 import com.example.woodometer.R
 import com.example.woodometer.databinding.FragmentCircleBinding
@@ -63,13 +65,16 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener {
 
         // Initialize ViewModel
         krugViewModel = ViewModelProvider(requireActivity())[KrugViewModel::class.java]
+        _binding!!.lifecycleOwner = viewLifecycleOwner
+        binding.krugVM = krugViewModel
 
         // Setup keyboard
         createKeyboardHashMap(binding.root)
         setupInputKeyboardClickListeners(keyboardTextViews)
 
         // Handle button click
-        binding.vrstaDrvetaButton?.setOnClickListener {
+        vrstaButton = binding.vrstaDrvetaButton
+        vrstaButton.setOnClickListener {
             TreeTypesFragment().apply {
                 setListener(this@CircleFragment)
             }.show(parentFragmentManager, null)
@@ -77,6 +82,9 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener {
 
         binding.mrtvaStablaButton?.setOnClickListener{
             parentFragmentManager.beginTransaction().replace(R.id.main,DeadTreesFragment()).addToBackStack(null).commit()
+        }
+        binding.biodiverzitetButton.setOnClickListener{
+            parentFragmentManager.beginTransaction().replace(R.id.main,BiodiversityFragment()).addToBackStack(null).commit()
         }
 
         return binding.root
@@ -125,12 +133,28 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener {
             )
     }
 
+    //U ovoj funkciji takodje resavamo problem klika na Edit Text to jest da ne registruje normalan klik na edit text
+    //Vec omogucavamo da kada se klikne tacno na edit text bude otvoren keyboard!
+    @SuppressLint("ClickableViewAccessibility")
     private fun setupInputKeyboardClickListeners(inputFields: HashMap<ConstraintLayout,Triple<TextInputEditText,String,KeyboardField>>) {
-        inputFields.keys.forEach { layout ->
-            layout.setOnClickListener(){
-                currentInputField = keyboardTextViews[layout]?.first!!
-                openKeyboard(layout)
+        inputFields.forEach { (layout, triple) ->
+            val inputView = triple.first
+            var clicked = false // flag to prevent double trigger
+            layout.setOnClickListener {
+                if (!clicked) {
+                    clicked = true
+                    currentInputField = inputView
+                    openKeyboard(layout)
+
+                    // reset the flag after a short delay to allow next click
+                    layout.postDelayed({ clicked = false }, 200)
+                }
             }
+            inputView.setOnTouchListener { _, _ ->
+                layout.performClick() // This still triggers the click listener above
+                true
+            }
+
         }
     }
 
@@ -147,9 +171,7 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener {
             .commit()
     }
 
-    override fun onKeyPressed(key: String) {
-        TODO()
-    }
+
 
     override fun onEnterPressed(input: String) {
         currentInputField.text = input
