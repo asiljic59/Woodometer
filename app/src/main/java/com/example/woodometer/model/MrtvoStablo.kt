@@ -1,10 +1,12 @@
 package com.example.woodometer.model
+import java.util.UUID
 
-data class MrtvoStablo(
-    var rbr: Int = 1,
+class MrtvoStablo (
+    var id : UUID = UUID.randomUUID(),
     var vrsta: Int = 11,
     var polozaj: Int = 1,
     var precnik: Float = 0f,
-    var visina: Int = 0
-) {
-}
+    var visina: Int = 0,
+    var rbr : Int = 1,
+    var krugId: UUID = UUID.randomUUID() // Added default value
+)

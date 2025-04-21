@@ -8,21 +8,11 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.databinding.BindingAdapter
-import androidx.databinding.InverseBindingAdapter
-import androidx.fragment.app.FragmentTransaction
-import androidx.fragment.app.replace
-import androidx.navigation.NavController
-import androidx.navigation.NavGraph
-import androidx.navigation.fragment.NavHostFragment
 import com.example.woodometer.R
 import com.example.woodometer.fragments.CircleFragment
 import com.example.woodometer.fragments.HomeScreenFragment
 import com.example.woodometer.fragments.KeyboardFragment
 import com.example.woodometer.interfaces.TreeListener
-import com.example.woodometer.model.MrtvoStablo
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.textfield.TextInputEditText
 
 class MainActivity : AppCompatActivity() {
     val  VRSTE_DRVECA = listOf(

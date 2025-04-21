@@ -66,7 +66,7 @@ class ListOptionsFragment : DialogFragment(), AddOptionListener {
         //setting list items and adapter for recycler view
         val recyclerView : RecyclerView = view.findViewById(R.id.optionsRecyclerView)
         recyclerView.layoutManager = LinearLayoutManager(context)
-        recyclerView.adapter = ListOptionsAdapter(listItems)
+        recyclerView.adapter = ListOptionsAdapter(listItems,this)
 
         val addNew  = view.findViewById<TextView>(R.id.dodajNovuJed)
 
@@ -127,5 +127,10 @@ class ListOptionsFragment : DialogFragment(), AddOptionListener {
 
     override fun addOption(option : String) {
         listener?.addOption(option)
+    }
+
+    override fun optionPicked(option: String) {
+        listener?.optionPicked(option)
+        dismiss()
     }
 }

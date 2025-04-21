@@ -1,0 +1,29 @@
+package com.example.woodometer.utils
+
+import android.content.Context
+import com.example.woodometer.model.Krug
+
+object PreferencesUtils {
+
+    fun getListFromPrefs(fileName : String, context: Context?): MutableList<String> {
+        val sharedPrefs = context?.getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
+        val joined = sharedPrefs?.getString(fileName, "") ?: ""
+
+        // If the joined string is not empty, split it and return a mutable list, else return an empty mutable list
+        return if (joined.isNotEmpty()) {
+            joined.split(",").toMutableList()  // Convert the result of split() to a mutable list
+        } else {
+            mutableListOf()  // Return an empty mutable list if the joined string is empty
+        }
+    }
+    fun saveListToPrefs(context: Context?, list: MutableList<String>,fileName: String) {
+        val sharedPrefs = context?.getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
+        val joined = list.joinToString(",") // e.g. "123,456,789"
+        sharedPrefs?.edit()?.putString(fileName, joined)?.apply()
+    }
+
+    fun getCurrentDoc(){
+    }
+
+    fun saveCurrentDoc(){}
+}

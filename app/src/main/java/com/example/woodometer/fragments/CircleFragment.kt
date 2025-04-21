@@ -17,6 +17,8 @@ import com.example.woodometer.databinding.FragmentCircleBinding
 import com.example.woodometer.interfaces.KeyboardListener
 import com.example.woodometer.interfaces.TreeTypeListener
 import com.example.woodometer.model.enumerations.KeyboardField
+import com.example.woodometer.utils.KeyboardUtils.currentInputField
+import com.example.woodometer.utils.KeyboardUtils.setupInputKeyboardClickListeners
 import com.example.woodometer.viewmodels.KrugViewModel
 import com.google.android.material.textfield.TextInputEditText
 
@@ -28,7 +30,7 @@ private const val ARG_PARAM2 = "param2"
 /**
  * A simple [Fragment] subclass.
  * Use the [CircleFragment.newInstance] factory method to
- * create an instance of this fragment.
+ * c.reate an instance of this fragment.
  */
 class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener {
 
@@ -39,7 +41,6 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener {
     private var param1: String? = null
     private var param2: String? = null
 
-    private lateinit var currentInputField : TextView
     //polja koja otvaraju tastaturu
     private lateinit var keyboardTextViews : HashMap<ConstraintLayout,Triple<TextInputEditText,String,KeyboardField>>
     private lateinit var vrstaButton : Button
@@ -70,7 +71,7 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener {
 
         // Setup keyboard
         createKeyboardHashMap(binding.root)
-        setupInputKeyboardClickListeners(keyboardTextViews)
+        setupInputKeyboardClickListeners(keyboardTextViews,parentFragmentManager,this)
 
         // Handle button click
         vrstaButton = binding.vrstaDrvetaButton
@@ -80,7 +81,7 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener {
             }.show(parentFragmentManager, null)
         }
 
-        binding.mrtvaStablaButton?.setOnClickListener{
+        binding.mrtvaStablaButton.setOnClickListener{
             parentFragmentManager.beginTransaction().replace(R.id.main,DeadTreesFragment()).addToBackStack(null).commit()
         }
         binding.biodiverzitetButton.setOnClickListener{
@@ -133,53 +134,14 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener {
             )
     }
 
-    //U ovoj funkciji takodje resavamo problem klika na Edit Text to jest da ne registruje normalan klik na edit text
-    //Vec omogucavamo da kada se klikne tacno na edit text bude otvoren keyboard!
-    @SuppressLint("ClickableViewAccessibility")
-    private fun setupInputKeyboardClickListeners(inputFields: HashMap<ConstraintLayout,Triple<TextInputEditText,String,KeyboardField>>) {
-        inputFields.forEach { (layout, triple) ->
-            val inputView = triple.first
-            var clicked = false // flag to prevent double trigger
-            layout.setOnClickListener {
-                if (!clicked) {
-                    clicked = true
-                    currentInputField = inputView
-                    openKeyboard(layout)
-
-                    // reset the flag after a short delay to allow next click
-                    layout.postDelayed({ clicked = false }, 200)
-                }
-            }
-            inputView.setOnTouchListener { _, _ ->
-                layout.performClick() // This still triggers the click listener above
-                true
-            }
-
-        }
-    }
-
-    fun openKeyboard(layout: ConstraintLayout){
-        val keyboardFragment = KeyboardFragment().apply {
-            setKeyboardListener(this@CircleFragment)
-            keyboardTextViews[layout]?.let { setTitle(it.second) }
-            keyboardTextViews[layout]?.third?.let { setField(it) }
-        }
-        currentInputField.text = ""
-        parentFragmentManager.beginTransaction()
-            .add(R.id.main, keyboardFragment)
-            .addToBackStack(null)
-            .commit()
-    }
-
-
 
     override fun onEnterPressed(input: String) {
-        currentInputField.text = input
+        currentInputField?.setText(input)
     }
 
 
     override fun onClearPressed() {
-        currentInputField.text = ""
+        currentInputField?.setText("")
     }
 
     override fun setTreeType(name: String, key: Int) {

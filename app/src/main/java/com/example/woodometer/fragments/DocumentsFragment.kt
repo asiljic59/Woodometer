@@ -1,12 +1,16 @@
 package com.example.woodometer.fragments
 
+import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import androidx.recyclerview.widget.RecyclerView
 import com.example.woodometer.R
+import com.example.woodometer.adapters.DocumentsAdapter
+import com.example.woodometer.utils.PreferencesUtils
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -22,6 +26,9 @@ class DocumentsFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
+
+    private lateinit var documentsRecylerView : RecyclerView
+    private lateinit var  adapter : DocumentsAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,9 +49,13 @@ class DocumentsFragment : Fragment() {
         backButton.setOnClickListener{
             parentFragmentManager.popBackStack()
         }
+
+        documentsRecylerView = view.findViewById(R.id.docsRecyclerView)
+        adapter = DocumentsAdapter(PreferencesUtils.getListFromPrefs("docs",context))
+        documentsRecylerView.adapter = adapter
+
         return view;
     }
-
     companion object {
         /**
          * Use this factory method to create a new instance of

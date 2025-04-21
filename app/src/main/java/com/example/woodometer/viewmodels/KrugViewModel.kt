@@ -10,16 +10,20 @@ import com.example.woodometer.model.MrtvoStablo
 import com.example.woodometer.model.Stablo
 
 class KrugViewModel : ViewModel() {
-    private val _trenutniKrug = MutableLiveData<Krug>()
+    private val _trenutniKrug = MutableLiveData<Krug>().apply {
+        value = Krug()
+    }
+
     private val _trenutnaMrtvaStabla = MutableLiveData<List<MrtvoStablo>>(emptyList())
+
     private val _trenutnoStablo = MutableLiveData<Stablo>().apply {
-        value = Stablo(rbr = 1)
+        value = trenutniKrug.value?.let { Stablo(1, it.id) }
     }
     private val _trenutnoMrtvoStablo = MutableLiveData<MrtvoStablo>().apply {
-        value = MrtvoStablo(rbr = 1)
+        value = MrtvoStablo(rbr = 1,krugId = _trenutniKrug.value?.id!!)
     }
     private val _biodiverzitet = MutableLiveData<Biodiverzitet>().apply {
-        value = Biodiverzitet()
+        value = Biodiverzitet(_trenutniKrug.value?.id!!)
     }
 
     val trenutniKrug: LiveData<Krug> get() = _trenutniKrug
@@ -33,7 +37,7 @@ class KrugViewModel : ViewModel() {
     }
     //SETOVANJE NOVOG MRTVOG STABLA KOJE CE DA BUDE AZURIRANO
     fun setMrtvoStabloToEdit(item: MrtvoStablo) {
-        _trenutnoMrtvoStablo.value = item.copy() // Important to copy to avoid reference issues
+        _trenutnoMrtvoStablo.value = item // Important to copy to avoid reference issues
     }
     //DODAVANJE NOVOG MRTVOG STABLA
     fun addMrtvoStablo() {
@@ -45,7 +49,7 @@ class KrugViewModel : ViewModel() {
             updatedList.add(newStablo)
             _trenutnaMrtvaStabla.value = updatedList
             // Update the _trenutnoMrtvoStablo LiveData
-            _trenutnoMrtvoStablo.value = MrtvoStablo(rbr = nextRbr)
+            _trenutnoMrtvoStablo.value = MrtvoStablo(rbr = nextRbr,krugId = trenutniKrug.value?.id!!)
         }
     }
     //BRISANJE MRTVOG STABLA
@@ -61,7 +65,7 @@ class KrugViewModel : ViewModel() {
         mrtvoStablo.value?.let { updatedList.add(it) }
         _trenutnaMrtvaStabla.value = updatedList
         val nextRbr = updatedList.size + 1
-        _trenutnoMrtvoStablo.value = MrtvoStablo(rbr = nextRbr )
+        _trenutnoMrtvoStablo.value = MrtvoStablo(rbr = nextRbr,krugId = _trenutniKrug.value?.id!! )
     }
 
 

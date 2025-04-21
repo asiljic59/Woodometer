@@ -12,4 +12,9 @@ enum class KeyboardField {
     TEHNICKA_KLASA,
     PROBNA_DOZNAKA,
     POLOZAJ_STABLA,
+    NAGIB,
+    ID,
+    GAZ_TIP,
+    UZGOJNA_GRUPA,
+    BR_KRUG
 }

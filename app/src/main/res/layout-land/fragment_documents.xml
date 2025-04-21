@@ -50,6 +50,7 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/docsRecyclerView"
         android:layout_width="729dp"
         android:layout_height="361dp"
         android:layout_marginTop="1dp"

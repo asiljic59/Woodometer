@@ -19,6 +19,8 @@ import com.example.woodometer.interfaces.KeyboardListener
 import com.example.woodometer.interfaces.TreeTypeListener
 import com.example.woodometer.model.MrtvoStablo
 import com.example.woodometer.model.enumerations.KeyboardField
+import com.example.woodometer.utils.KeyboardUtils
+import com.example.woodometer.utils.KeyboardUtils.currentInputField
 import com.example.woodometer.viewmodels.KrugViewModel
 import com.google.android.material.textfield.TextInputEditText
 
@@ -43,7 +45,6 @@ class AddDeadTreeFragment : Fragment(),KeyboardListener,TreeTypeListener {
         this.isAddition = isAddition
     }
 
-    private lateinit var currentInputField : TextView
     private lateinit var keyboardTextViews : HashMap<ConstraintLayout,Triple<TextInputEditText,String,KeyboardField>>
     private lateinit var vrstaButton:TextView
     private lateinit var krugVM : KrugViewModel
@@ -76,7 +77,7 @@ class AddDeadTreeFragment : Fragment(),KeyboardListener,TreeTypeListener {
         _binding!!.lifecycleOwner = viewLifecycleOwner
         binding.krugVM = krugVM
 
-        createKeyboardHashMap(view)
+        KeyboardUtils.setupInputKeyboardClickListeners(keyboardTextViews,parentFragmentManager,this@AddDeadTreeFragment)
 
         binding.saveButton.setOnClickListener {
             if (isDeadTreeValid()) {
@@ -134,63 +135,13 @@ class AddDeadTreeFragment : Fragment(),KeyboardListener,TreeTypeListener {
         return (mrtvoStablo?.precnik != 0f || mrtvoStablo.visina != 0 || mrtvoStablo.vrsta != 0 || mrtvoStablo.polozaj != 0 )
     }
 
-    private fun createKeyboardHashMap(view: View){
-        keyboardTextViews = hashMapOf(
-            view.findViewById<ConstraintLayout>(R.id.precnikLayout) to
-                    Triple(view.findViewById<TextInputEditText>(R.id.precnikTextView),"Prečnik",
-                        KeyboardField.PRECNIK),
-            view.findViewById<ConstraintLayout>(R.id.visinaLayout) to
-                    Triple(view.findViewById<TextInputEditText>(R.id.visinaTextView),"Visina", KeyboardField.VISINA),
-            view.findViewById<ConstraintLayout>(R.id.polozajStablaLayout)  to
-                    Triple(view.findViewById<TextInputEditText>(R.id.polozajStablaTextView),"Polozaj stabla",KeyboardField.POLOZAJ_STABLA)
-        )
-        setupInputKeyboardClickListeners(keyboardTextViews)
-    }
-
-    //U ovoj funkciji takodje resavamo problem klika na Edit Text to jest da ne registruje normalan klik na edit text
-    //Vec omogucavamo da kada se klikne tacno na edit text bude otvoren keyboard!
-    @SuppressLint("ClickableViewAccessibility")
-    private fun setupInputKeyboardClickListeners(inputFields: HashMap<ConstraintLayout,Triple<TextInputEditText,String,KeyboardField>>) {
-        inputFields.forEach { (layout, triple) ->
-            val inputView = triple.first
-            var clicked = false // flag to prevent double trigger
-            layout.setOnClickListener {
-                if (!clicked) {
-                    clicked = true
-                    currentInputField = inputView
-                    openKeyboard(layout)
-
-                    // reset the flag after a short delay to allow next click
-                    layout.postDelayed({ clicked = false }, 200)
-                }
-            }
-            inputView.setOnTouchListener { _, _ ->
-                layout.performClick() // This still triggers the click listener above
-                true
-            }
-
-        }
-    }
-
-    fun openKeyboard(layout: ConstraintLayout){
-        val keyboardFragment = KeyboardFragment().apply {
-            setKeyboardListener(this@AddDeadTreeFragment)
-            keyboardTextViews[layout]?.let { setTitle(it.second) }
-            keyboardTextViews[layout]?.third?.let { setField(it) }
-        }
-        currentInputField.text = ""
-        parentFragmentManager.beginTransaction().add(R.id.main,keyboardFragment).addToBackStack(null).commit()
-    }
-
-
-
     override fun onEnterPressed(input: String) {
-        currentInputField.text = input
+        currentInputField?.setText(input)
     }
 
 
     override fun onClearPressed() {
-        currentInputField.text = ""
+        currentInputField?.setText("")
     }
 
     override fun setTreeType(name: String, key: Int) {

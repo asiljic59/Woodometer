@@ -1,13 +1,12 @@
 package com.example.woodometer.model
+import java.util.UUID
 
-class Krug (
-    var gazJedinica : Int,
-    var brOdeljenja: Int,
-    var brKruga: Int,
-    var odsek : String,
-    var permanentna: Boolean,
-    var pristupacnost : Boolean,
-    var nagib : Float,
-    var stabla : List<Stablo>,
-    var biodiverzitet: Biodiverzitet
-){}
+class Krug(var id: UUID = UUID.randomUUID()) {
+    var IdBroj : Int? = null
+    var brKruga: Int = 0
+    var permanentna: Boolean? = null
+    var pristupacnost : Boolean? = null
+    var nagib : Float = 0f
+    var gazTip : Int = 0
+    var uzgojnaGrupa : Int = 0
+}
