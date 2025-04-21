@@ -1,7 +1,21 @@
 package com.example.woodometer.model
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
+import androidx.room.PrimaryKey
 import java.util.UUID
 
-class MrtvoStablo (
+@Entity(
+    foreignKeys = [ForeignKey(
+        entity = Krug::class,
+        parentColumns = ["id"],
+        childColumns = ["krugId"],
+        onDelete = ForeignKey.CASCADE
+    )],
+    indices = [Index("userId")]
+)
+data class MrtvoStablo (
+    @PrimaryKey
     var id : UUID = UUID.randomUUID(),
     var vrsta: Int = 11,
     var polozaj: Int = 1,

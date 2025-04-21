@@ -1,7 +1,24 @@
 package com.example.woodometer.model
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
+import androidx.room.PrimaryKey
 import java.util.UUID
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.jvm.isAccessible
 
-class Krug(var id: UUID = UUID.randomUUID()) {
+@Entity(
+    foreignKeys = [ForeignKey(
+        entity = Dokument::class,
+        parentColumns = ["id"],
+        childColumns = ["dokumentId"],
+        onDelete = ForeignKey.CASCADE
+    )],
+    indices = [Index("dokumentId")]
+)
+data class Krug(var id: UUID = UUID.randomUUID()) {
+    @PrimaryKey
     var IdBroj : Int? = null
     var brKruga: Int = 0
     var permanentna: Boolean? = null
@@ -9,4 +26,6 @@ class Krug(var id: UUID = UUID.randomUUID()) {
     var nagib : Float = 0f
     var gazTip : Int = 0
     var uzgojnaGrupa : Int = 0
+    var dokumentId : UUID = UUID.randomUUID()
+
 }

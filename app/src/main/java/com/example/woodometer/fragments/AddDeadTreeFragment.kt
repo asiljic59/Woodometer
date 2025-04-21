@@ -2,6 +2,7 @@ package com.example.woodometer.fragments
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.provider.Settings.Global
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -19,6 +20,7 @@ import com.example.woodometer.interfaces.KeyboardListener
 import com.example.woodometer.interfaces.TreeTypeListener
 import com.example.woodometer.model.MrtvoStablo
 import com.example.woodometer.model.enumerations.KeyboardField
+import com.example.woodometer.utils.GlobalUtils
 import com.example.woodometer.utils.KeyboardUtils
 import com.example.woodometer.utils.KeyboardUtils.currentInputField
 import com.example.woodometer.viewmodels.KrugViewModel
@@ -122,9 +124,8 @@ class AddDeadTreeFragment : Fragment(),KeyboardListener,TreeTypeListener {
             treeTypesFragment.show(parentFragmentManager, null)
         }
         if (isAddition == false){
-            val activity = requireActivity() as MainActivity
             vrstaButton.text =
-                activity.VRSTE_DRVECA.filter { it.first ==
+                GlobalUtils.VRSTE_DRVECA.filter { it.first ==
                     krugVM.mrtvoStablo.value?.vrsta
                 }.first().second
         }

@@ -10,17 +10,19 @@ import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.ViewModelProvider
 import com.example.woodometer.R
 import com.example.woodometer.interfaces.KeyboardListener
 import com.example.woodometer.model.enumerations.KeyboardField
+import com.example.woodometer.utils.GlobalUtils
+import com.example.woodometer.viewmodels.KrugViewModel
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
-private const val UPPER_DISTANCE_VALUE_OVER_30 = 12.62
-private const val UPPER_DISTANCE_VALUE_UNDER_10 = 7.98
+
 
 /**
  * A simple [Fragment] subclass.
@@ -37,6 +39,8 @@ class KeyboardFragment : Fragment() {
     private var title : String? = null
 
     private var field : KeyboardField? = null
+
+    private lateinit var krugViewModel: KrugViewModel
 
     private lateinit var tvInput: TextView
     private var currentInput = StringBuilder()
@@ -68,6 +72,7 @@ class KeyboardFragment : Fragment() {
 
         // Inflate the layout for this fragment
         val view : View = inflater.inflate(R.layout.fragment_keyboard, container, false)
+        krugViewModel = ViewModelProvider(requireActivity())[KrugViewModel::class.java]
 
         tvInput = view.findViewById<TextView>(R.id.tvInput)
         var textViewText = view.findViewById<TextView>(R.id.textViewText)
@@ -159,7 +164,7 @@ class KeyboardFragment : Fragment() {
     //Uvek cemo znati koji se atribut trenutno kuca jer saljemo keyboard fragmentu!
     private fun isValid() : Boolean{
         if (field == KeyboardField.PRECNIK){
-            return isDecimalValid()
+            return isPrecnikValid()
         }else if (field == KeyboardField.AZIMUT){
             return isAzimutValid()
         }else if (field in listOf(KeyboardField.SOCIJALNI_STATUS, KeyboardField.TEHNICKA_KLASA,KeyboardField.STEPEN_SUSENJA)){
@@ -172,6 +177,16 @@ class KeyboardFragment : Fragment() {
             return isPositionValid()
         }
 
+        return true
+    }
+
+    private fun isPrecnikValid(): Boolean {
+        if (!isDecimalValid()) {return false}
+        val number = currentInput.toString().toDouble()
+        if(number < 30 && krugViewModel.trenutnoStablo.value?.razdaljina!! > GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30 ){
+            Toast.makeText(context,"Za prečnik veći od 30cm razdaljina mora biti preko ${GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30}",Toast.LENGTH_SHORT).show()
+            return false
+        }
         return true
     }
 
@@ -198,12 +213,13 @@ class KeyboardFragment : Fragment() {
     }
 
     private fun isDistanceValid(): Boolean {
-        try{
-            val number = currentInput.toString().toDouble()
-            if (number < 0  || number > UPPER_DISTANCE_VALUE_OVER_30){throw NumberFormatException()}
-            currentInput = StringBuilder(currentInput.toString().toInt().toString())
-        }catch (e : NumberFormatException){
-            Toast.makeText(context,"Razdaljina mora biti brojevna vrednost manja od 12.62",Toast.LENGTH_SHORT).show()
+        if (!isDecimalValid()) {return false}
+        val number = currentInput.toString().toDouble()
+        if(number > GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30 && krugViewModel.trenutnoStablo.value?.precnik!! < 30){
+            Toast.makeText(context,"Za prečnik veći od 30cm razdaljina mora biti preko ${GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30}",Toast.LENGTH_SHORT).show()
+            return false
+        }else if (number >= GlobalUtils.DISTANCE_UPPER_LIMIT){
+            Toast.makeText(context,"Razdaljina ne sme biti veća od ${GlobalUtils.DISTANCE_UPPER_LIMIT}",Toast.LENGTH_SHORT).show()
             return false
         }
         return true
@@ -239,18 +255,18 @@ class KeyboardFragment : Fragment() {
     fun isDecimalValid() : Boolean{
         try{
             val number = currentInput.toString().toDouble()
-            if (hasMoreThanOneDecimal(number)){currentInput= StringBuilder(trimToOneDecimal(number).toString())}
+            if (hasMoreThanTwoDecimal(number)){currentInput= StringBuilder(trimToOneDecimal(number).toString())}
             currentInput = StringBuilder(currentInput.toString().toDouble().toString())
         }catch (e : NumberFormatException){
-            Toast.makeText(context,"$title mora biti izražen u centimetrima na najviše jednu decimalu!",Toast.LENGTH_SHORT).show()
+            Toast.makeText(context,"$title mora biti izražen na najviše dve decimale!",Toast.LENGTH_SHORT).show()
             return false
         }
         return true
     }
-    fun hasMoreThanOneDecimal(number: Double): Boolean {
+    fun hasMoreThanTwoDecimal(number: Double): Boolean {
         val text = number.toString()
         val decimalIndex = text.indexOf('.')
-        return decimalIndex != -1 && text.length - decimalIndex > 2
+        return decimalIndex != -1 && text.length - decimalIndex > 3
     }
 
     fun trimToOneDecimal(number: Double): Double {

@@ -15,14 +15,6 @@ import com.example.woodometer.fragments.KeyboardFragment
 import com.example.woodometer.interfaces.TreeListener
 
 class MainActivity : AppCompatActivity() {
-    val  VRSTE_DRVECA = listOf(
-        11 to "Bela vrba",      // 11 → Bela vrba
-        12 to "Bademasta vrba", // 12 → Bademasta vrba
-        13 to "Krta vrba",      // 13 → Krta vrba
-        14 to "Siva vrba",      // 14 → Siva vrba
-        21 to "Crna jova",       // 21 → Crna jova
-        22 to "Bela jova"
-    )
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -35,6 +27,7 @@ class MainActivity : AppCompatActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
 
         supportFragmentManager.beginTransaction().replace(R.id.main, HomeScreenFragment()).commit()
+
 
     }
 

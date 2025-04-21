@@ -7,10 +7,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import androidx.fragment.app.replace
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.woodometer.R
 import com.example.woodometer.adapters.DocumentsAdapter
+import com.example.woodometer.interfaces.DocumentsListener
+import com.example.woodometer.model.Dokument
 import com.example.woodometer.utils.PreferencesUtils
+import com.example.woodometer.viewmodels.DokumentViewModel
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -22,7 +29,7 @@ private const val ARG_PARAM2 = "param2"
  * Use the [DocumentsFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class DocumentsFragment : Fragment() {
+class DocumentsFragment : Fragment(), DocumentsListener {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
@@ -37,7 +44,7 @@ class DocumentsFragment : Fragment() {
             param2 = it.getString(ARG_PARAM2)
         }
     }
-
+    private lateinit var dokumentiViewModel : DokumentViewModel
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -45,14 +52,20 @@ class DocumentsFragment : Fragment() {
         // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_documents, container, false)
 
+        dokumentiViewModel = ViewModelProvider(requireActivity())[DokumentViewModel::class.java]
         val backButton = view.findViewById<ImageButton>(R.id.backButton)
         backButton.setOnClickListener{
             parentFragmentManager.popBackStack()
         }
 
         documentsRecylerView = view.findViewById(R.id.docsRecyclerView)
-        adapter = DocumentsAdapter(PreferencesUtils.getListFromPrefs("docs",context))
+        adapter = DocumentsAdapter(dokumentiViewModel.dokumenti.value!!,this)
         documentsRecylerView.adapter = adapter
+        documentsRecylerView.layoutManager = LinearLayoutManager(context)
+        dokumentiViewModel.dokumenti.observe(viewLifecycleOwner) { dokumenti ->
+            adapter.updateData(dokumenti)
+        }
+
 
         return view;
     }
@@ -74,5 +87,10 @@ class DocumentsFragment : Fragment() {
                     putString(ARG_PARAM2, param2)
                 }
             }
+    }
+
+    override fun docClicked(dokument: Dokument) {
+        dokumentiViewModel.setTrenuntniDokument(dokument)
+        parentFragmentManager.beginTransaction().replace(R.id.main,StartMeasuringFragment()).addToBackStack(null).commit()
     }
 }

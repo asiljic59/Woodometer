@@ -17,7 +17,7 @@ class KrugViewModel : ViewModel() {
     private val _trenutnaMrtvaStabla = MutableLiveData<List<MrtvoStablo>>(emptyList())
 
     private val _trenutnoStablo = MutableLiveData<Stablo>().apply {
-        value = trenutniKrug.value?.let { Stablo(1, it.id) }
+        value = trenutniKrug.value?.let { Stablo(rbr = 1, krugId =  it.id) }
     }
     private val _trenutnoMrtvoStablo = MutableLiveData<MrtvoStablo>().apply {
         value = MrtvoStablo(rbr = 1,krugId = _trenutniKrug.value?.id!!)

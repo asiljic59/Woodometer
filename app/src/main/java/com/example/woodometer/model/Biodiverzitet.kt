@@ -1,7 +1,11 @@
 package com.example.woodometer.model
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import java.util.UUID
 
-class Biodiverzitet(var krugId: UUID = UUID.randomUUID()){
+@Entity
+data class Biodiverzitet(var krugId: UUID = UUID.randomUUID()){
+    @PrimaryKey
     var id : UUID = UUID.randomUUID()
     var dubeca: Int = 0
     var osteceniVrh: Int = 0

@@ -13,6 +13,7 @@ import androidx.fragment.app.replace
 import androidx.lifecycle.ViewModelProvider
 import androidx.transition.Visibility
 import com.example.woodometer.R
+import com.example.woodometer.Woodometer
 import com.example.woodometer.databinding.FragmentAddCircleBinding
 import com.example.woodometer.databinding.FragmentAddDeadTreeBinding
 import com.example.woodometer.interfaces.KeyboardListener
@@ -69,11 +70,19 @@ class AddCircleFragment : Fragment(), KeyboardListener {
         setupKeyboardFields()
 
         binding.closeButton.setOnClickListener { parentFragmentManager.popBackStack() }
+
+        createButtonClick()
+
+        return binding.root
+    }
+
+    private fun createButtonClick(){
         binding.createButton.setOnClickListener {
             if (isValid()) {
                 parentFragmentManager.popBackStack()
                 parentFragmentManager.beginTransaction().replace(R.id.main, CircleFragment())
                     .addToBackStack(null).commit()
+                checkDocument()
             } else {
                 Toast.makeText(
                     context,
@@ -82,8 +91,16 @@ class AddCircleFragment : Fragment(), KeyboardListener {
                 ).show()
             }
         }
+    }
 
-        return binding.root
+    private fun checkDocument(){
+        dokumentVM.exists { exists ->
+            if (!exists) {
+                //dodajemo trenutni dokument
+                dokumentVM.add()
+                krugVM.trenutniKrug.value?.dokumentId = dokumentVM.trenutniDokument.value?.id!!
+            }
+        }
     }
 
     private fun setupKeyboardFields(){
@@ -130,13 +147,13 @@ class AddCircleFragment : Fragment(), KeyboardListener {
         return isKrugValid(krug) && isDokumentValid(dokument)
     }
     private fun isDokumentValid(dokument: Dokument) : Boolean{
-        return dokument.brOdeljenja == 0 ||  dokument.gazJedinica == 0 || dokument.odsek == "" || dokument.korisnik == 0
+        return !(dokument.brOdeljenja == 0 ||  dokument.gazJedinica == 0 || dokument.odsek == "" || dokument.korisnik == 0)
     }
 
     private fun isKrugValid(krug : Krug) : Boolean{
-        return krug.brKruga == 0 || krug.permanentna == null
+        return !(krug.brKruga == 0 || krug.permanentna == null
                 || krug.pristupacnost == null || krug.gazTip == 0
-                || krug.uzgojnaGrupa == 0 || krug.nagib == 0f || (krug.permanentna == true && krug.IdBroj == 0)
+                || krug.uzgojnaGrupa == 0 || krug.nagib == 0f || (krug.permanentna == true && krug.IdBroj == 0))
     }
 
     companion object {

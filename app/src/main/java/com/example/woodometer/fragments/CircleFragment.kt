@@ -16,6 +16,7 @@ import com.example.woodometer.R
 import com.example.woodometer.databinding.FragmentCircleBinding
 import com.example.woodometer.interfaces.KeyboardListener
 import com.example.woodometer.interfaces.TreeTypeListener
+import com.example.woodometer.model.Stablo
 import com.example.woodometer.model.enumerations.KeyboardField
 import com.example.woodometer.utils.KeyboardUtils.currentInputField
 import com.example.woodometer.utils.KeyboardUtils.setupInputKeyboardClickListeners
@@ -87,6 +88,9 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener {
         binding.biodiverzitetButton.setOnClickListener{
             parentFragmentManager.beginTransaction().replace(R.id.main,BiodiversityFragment()).addToBackStack(null).commit()
         }
+        binding.addTreeButton.setOnClickListener{
+            addTreeButtonClicked()
+        }
 
         return binding.root
     }
@@ -109,6 +113,16 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener {
                     putString(ARG_PARAM2, param2)
                 }
             }
+    }
+    private fun addTreeButtonClicked(){
+        if (isTreeValid()){
+
+        }
+    }
+
+    private fun isTreeValid(): Boolean{
+        val stablo = krugViewModel.trenutnoStablo.value!!
+        return true
     }
 
     private fun createKeyboardHashMap(view: View){
