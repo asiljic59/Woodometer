@@ -1,4 +1,4 @@
-package com.example.woodometer.repository
+package com.example.woodometer.dao
 
 import androidx.room.Dao
 import androidx.room.Insert

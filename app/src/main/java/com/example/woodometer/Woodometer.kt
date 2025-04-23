@@ -13,8 +13,9 @@ class Woodometer : Application() {
     override fun onCreate() {
         super.onCreate()
         database = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java, "woodometer"
-        ).build()
+                applicationContext,
+                AppDatabase::class.java, "woodometer"
+            ).fallbackToDestructiveMigration(true)
+        .build()
     }
 }

@@ -12,12 +12,12 @@ import java.util.UUID
         childColumns = ["krugId"],
         onDelete = ForeignKey.CASCADE
     )],
-    indices = [Index("userId")]
+    indices = [Index("krugId")]
 )
 data class Stablo(
     @PrimaryKey
     var id : UUID = UUID.randomUUID(),
-    var vrsta: Int = 0,
+    var vrsta: Int = 11,
     var azimut: Int = 0,
     var razdaljina: Float = 0f,
     var precnik: Float = 0f,
@@ -29,4 +29,13 @@ data class Stablo(
     var probDoznaka: Int = 30,
     var rbr : Int = 1,
     var krugId: UUID = UUID.randomUUID()
-)
+){
+    fun hasAnyDefaultVal() : Boolean{
+        return  azimut == 0 || razdaljina == 0f || precnik == 0f || duzDebla == 0 || visina == 0 ||
+                socStatus == 0 || stepSusenja == 0 || tehKlasa == 0
+    }
+    fun hasAnyNonDefaultVal() : Boolean{
+        return azimut != 0 || razdaljina != 0f || precnik != 0f || duzDebla != 0 || visina != 0 ||
+                socStatus != 0 || stepSusenja != 0 || tehKlasa != 0
+    }
+}

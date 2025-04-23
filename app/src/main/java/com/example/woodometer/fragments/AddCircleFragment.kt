@@ -83,6 +83,7 @@ class AddCircleFragment : Fragment(), KeyboardListener {
                 parentFragmentManager.beginTransaction().replace(R.id.main, CircleFragment())
                     .addToBackStack(null).commit()
                 checkDocument()
+                dokumentVM.trenutniDokument.value?.id?.let { it1 -> krugVM.resetKrug(it1) }
             } else {
                 Toast.makeText(
                     context,
@@ -144,18 +145,8 @@ class AddCircleFragment : Fragment(), KeyboardListener {
     private fun isValid() : Boolean{
         val krug : Krug = krugVM.trenutniKrug.value!!
         val dokument : Dokument = dokumentVM.trenutniDokument.value!!
-        return isKrugValid(krug) && isDokumentValid(dokument)
+        return !(krug.hasAnyDefaultVal() && dokument.hasAnyDefaultVal())
     }
-    private fun isDokumentValid(dokument: Dokument) : Boolean{
-        return !(dokument.brOdeljenja == 0 ||  dokument.gazJedinica == 0 || dokument.odsek == "" || dokument.korisnik == 0)
-    }
-
-    private fun isKrugValid(krug : Krug) : Boolean{
-        return !(krug.brKruga == 0 || krug.permanentna == null
-                || krug.pristupacnost == null || krug.gazTip == 0
-                || krug.uzgojnaGrupa == 0 || krug.nagib == 0f || (krug.permanentna == true && krug.IdBroj == 0))
-    }
-
     companion object {
         /**
          * Use this factory method to create a new instance of

@@ -13,4 +13,5 @@
     <color name="olive_navbar_highlight">#80800080</color>
     <color name="deactivate_color">#FF4444</color>
     <color name="forest_green">#556B2F</color>
+    <color name="line_color">#206808</color>
 </resources>

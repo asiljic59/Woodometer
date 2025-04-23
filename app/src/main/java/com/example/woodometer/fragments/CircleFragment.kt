@@ -8,20 +8,31 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.replace
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.woodometer.R
+import com.example.woodometer.adapters.TreesAdapter
 import com.example.woodometer.databinding.FragmentCircleBinding
 import com.example.woodometer.interfaces.KeyboardListener
+import com.example.woodometer.interfaces.TreeListener
 import com.example.woodometer.interfaces.TreeTypeListener
+import com.example.woodometer.model.MrtvoStablo
 import com.example.woodometer.model.Stablo
 import com.example.woodometer.model.enumerations.KeyboardField
+import com.example.woodometer.utils.GlobalUtils.VRSTE_DRVECA
 import com.example.woodometer.utils.KeyboardUtils.currentInputField
 import com.example.woodometer.utils.KeyboardUtils.setupInputKeyboardClickListeners
 import com.example.woodometer.viewmodels.KrugViewModel
 import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.launch
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -33,7 +44,7 @@ private const val ARG_PARAM2 = "param2"
  * Use the [CircleFragment.newInstance] factory method to
  * c.reate an instance of this fragment.
  */
-class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener {
+class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListener {
 
     private var _binding: FragmentCircleBinding? = null
     private val binding get() = _binding!! // Safe to use after onCreateView
@@ -46,6 +57,9 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener {
     private lateinit var keyboardTextViews : HashMap<ConstraintLayout,Triple<TextInputEditText,String,KeyboardField>>
     private lateinit var vrstaButton : Button
     private var currentTreeType = 0
+
+    private lateinit var stablaRecyclerView : RecyclerView
+    private lateinit var adapter: TreesAdapter
 
 
     private lateinit var krugViewModel: KrugViewModel
@@ -69,6 +83,11 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener {
         krugViewModel = ViewModelProvider(requireActivity())[KrugViewModel::class.java]
         _binding!!.lifecycleOwner = viewLifecycleOwner
         binding.krugVM = krugViewModel
+
+        krugViewModel.setStablaKruga()
+        krugViewModel.setDefaultStablo()
+
+        setupTreesRecyclerView()
 
         // Setup keyboard
         createKeyboardHashMap(binding.root)
@@ -114,9 +133,25 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener {
                 }
             }
     }
-    private fun addTreeButtonClicked(){
-        if (isTreeValid()){
+    private fun setupTreesRecyclerView(){
+        stablaRecyclerView = binding.treesRecyclerView
+        adapter = TreesAdapter(krugViewModel.stablaKruga.value?.sortedBy { it.rbr }?.toMutableList()!!,this)
+        stablaRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        stablaRecyclerView.adapter = adapter
+        krugViewModel.stablaKruga.observe(viewLifecycleOwner){stabla ->
+            adapter.updateData(stabla)
+        }
+        krugViewModel.trenutnoStablo.observe(viewLifecycleOwner){stablo ->
+            vrstaButton.text = VRSTE_DRVECA.find{ it.first == stablo.vrsta}?.second
+        }
+    }
 
+    private fun addTreeButtonClicked(){
+        if (krugViewModel.trenutnoStablo.value?.hasAnyNonDefaultVal() == true){
+            krugViewModel.updateTrenutnoStablo()
+            krugViewModel.resetStablo()
+        }else{
+            Toast.makeText(context, "Morate popuniti bar neku vrednost da biste kreirali novo stablo!", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -161,5 +196,25 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener {
     override fun setTreeType(name: String, key: Int) {
         vrstaButton.text = name
         currentTreeType = key
+    }
+
+    override fun changeTree(stablo : Stablo) {
+        if (krugViewModel.trenutnoStablo.value?.hasAnyNonDefaultVal() == true){
+            krugViewModel.updateTrenutnoStablo()
+
+        }
+        krugViewModel.setTrenutnoStablo(stablo)
+    }
+
+    override fun deleteTree(rbr: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun deleteConfirmed(deleted: Boolean, rbr: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun editTree(item: MrtvoStablo) {
+        TODO("Not yet implemented")
     }
 }

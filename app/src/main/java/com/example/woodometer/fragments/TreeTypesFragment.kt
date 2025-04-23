@@ -20,20 +20,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.woodometer.R
 import com.example.woodometer.adapters.TreeTypesAdapter
 import com.example.woodometer.interfaces.TreeTypeListener
+import com.example.woodometer.utils.GlobalUtils.VRSTE_DRVECA
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
-
-private val VRSTE_DRVECA = listOf(
-    11 to "Bela vrba",      // 11 → Bela vrba
-    12 to "Bademasta vrba", // 12 → Bademasta vrba
-    13 to "Krta vrba",      // 13 → Krta vrba
-    14 to "Siva vrba",      // 14 → Siva vrba
-    21 to "Crna jova",       // 21 → Crna jova
-    22 to "Bela jova"
-)
 
 /**
  * A simple [Fragment] subclass.

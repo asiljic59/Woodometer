@@ -17,15 +17,22 @@ import kotlin.reflect.jvm.isAccessible
     )],
     indices = [Index("dokumentId")]
 )
-data class Krug(var id: UUID = UUID.randomUUID()) {
+data class Krug(
     @PrimaryKey
-    var IdBroj : Int? = null
-    var brKruga: Int = 0
-    var permanentna: Boolean? = null
-    var pristupacnost : Boolean? = null
-    var nagib : Float = 0f
-    var gazTip : Int = 0
-    var uzgojnaGrupa : Int = 0
+    var id: UUID = UUID.randomUUID(),
+    var IdBroj : Int? = null,
+    var brKruga: Int = 0,
+    var permanentna: Boolean? = null,
+    var pristupacnost : Boolean? = null,
+    var nagib : Float = 0f,
+    var gazTip : Int = 0,
+    var uzgojnaGrupa : Int = 0,
     var dokumentId : UUID = UUID.randomUUID()
+) {
+    fun hasAnyDefaultVal() : Boolean{
+        return brKruga == 0 || permanentna == null
+                || pristupacnost == null || gazTip == 0
+                || uzgojnaGrupa == 0 || nagib == 0f || (permanentna == true && IdBroj == 0)
+    }
 
 }

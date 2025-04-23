@@ -14,6 +14,7 @@ import com.example.woodometer.activities.MainActivity
 import com.example.woodometer.adapters.DeadTreesAdapter
 import com.example.woodometer.interfaces.TreeListener
 import com.example.woodometer.model.MrtvoStablo
+import com.example.woodometer.model.Stablo
 import com.example.woodometer.viewmodels.KrugViewModel
 
 // TODO: Rename parameter arguments, choose names that match
@@ -93,6 +94,10 @@ class DeadTreesFragment : Fragment(),TreeListener {
                     putString(ARG_PARAM2, param2)
                 }
             }
+    }
+
+    override fun changeTree(stablo: Stablo) {
+        TODO("Not yet implemented")
     }
 
     //brisanje mrtvog stabla

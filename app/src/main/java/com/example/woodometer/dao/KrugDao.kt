@@ -1,9 +1,10 @@
-package com.example.woodometer.repository
+package com.example.woodometer.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import com.example.woodometer.model.Dokument
 import com.example.woodometer.model.Krug
 import java.util.UUID
 
@@ -14,6 +15,9 @@ interface KrugDao {
 
     @Query("SELECT * FROM Krug WHERE id = :id")
     fun getById(id : UUID) : Krug?
+
+    @Query("SELECT * FROM Krug WHERE dokumentId = :dokumentId")
+    fun getByDokument(dokumentId: UUID) : MutableList<Krug>
 
     @Insert
     fun add(vararg krugovi : Krug)
