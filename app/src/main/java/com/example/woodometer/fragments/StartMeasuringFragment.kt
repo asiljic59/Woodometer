@@ -206,6 +206,6 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
 
     override fun circleChanged(krug: Krug) {
         krugVM.setTrenutniKrug(krug)
-        parentFragmentManager.beginTransaction().replace(R.id.main,CircleFragment()).addToBackStack(null).commit()
+        parentFragmentManager.beginTransaction().setReorderingAllowed(true).replace(R.id.main,CircleFragment()).addToBackStack(null).commit()
     }
 }

@@ -33,9 +33,9 @@ class MainActivity : AppCompatActivity() {
 
     fun showDeleteConfirmationDialog(listener : TreeListener,rbr : Int){
         val builder = AlertDialog.Builder(this)
-        builder.setMessage("Da li ste sigurni da želite da obrišete mrtvo stablo $rbr?")
+        builder.setMessage("Da li ste sigurni da želite da obrišete stablo $rbr?")
             .setPositiveButton("Yes") { dialog, id ->
-                Toast.makeText(this, "Mrtvo stablo $rbr obrisano.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Stablo $rbr obrisano.", Toast.LENGTH_SHORT).show()
                 listener.deleteConfirmed(true,rbr)
             }
             .setNegativeButton("No") { dialog, id ->

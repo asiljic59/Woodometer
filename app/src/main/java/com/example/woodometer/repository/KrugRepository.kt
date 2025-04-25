@@ -10,12 +10,7 @@ class KrugRepository : Repository<Krug, UUID>{
     override suspend fun add(vararg item: Krug) {
         krugDao.add(*item)
     }
-
-    override suspend fun getAll(): List<Krug> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun update(vararg item: Krug) {
+    override suspend fun upsert(vararg item: Krug) {
         TODO("Not yet implemented")
     }
 

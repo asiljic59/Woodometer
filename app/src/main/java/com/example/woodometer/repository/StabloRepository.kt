@@ -10,16 +10,12 @@ class StabloRepository : Repository<Stablo, UUID> {
         return stabloDao.add(*item)
     }
 
-    override suspend fun getAll(): List<Stablo> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun update(vararg item: Stablo) {
-        stabloDao.update(*item)
+    override suspend fun upsert(vararg item: Stablo) {
+        stabloDao.upsert(*item)
     }
 
     override suspend fun delete(item: Stablo) {
-        TODO("Not yet implemented")
+        stabloDao.delete(item)
     }
 
     override suspend fun getById(id: UUID): Stablo? {
@@ -27,8 +23,5 @@ class StabloRepository : Repository<Stablo, UUID> {
     }
     fun getByKrug (id : UUID) : MutableList<Stablo>{
         return stabloDao.getByKrug(id)
-    }
-    fun upsert(vararg stablo : Stablo){
-        stabloDao.upsert(*stablo)
     }
 }

@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.woodometer.R
@@ -16,6 +17,7 @@ import com.example.woodometer.interfaces.TreeListener
 import com.example.woodometer.model.MrtvoStablo
 import com.example.woodometer.model.Stablo
 import com.example.woodometer.viewmodels.KrugViewModel
+import kotlinx.coroutines.launch
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -57,23 +59,31 @@ class DeadTreesFragment : Fragment(),TreeListener {
             val addTreeFragment = AddDeadTreeFragment().apply {
                 setAddition(true)
             }
-            parentFragmentManager.beginTransaction().add(R.id.main,addTreeFragment).addToBackStack(null).commit()
+            parentFragmentManager.beginTransaction().replace(R.id.main,addTreeFragment).addToBackStack(null).commit()
         }
-        recyclerView = view.findViewById(R.id.deadTreesRecyclerView)
-        adapter = krugViewModel.trenutnaMrtvaStabla.value?.let { DeadTreesAdapter(it,this@DeadTreesFragment) }!!
-        recyclerView.layoutManager = LinearLayoutManager(context)
-        recyclerView.adapter = adapter
-
-        //pratimo promene u mrtvim stablima!!!
-        krugViewModel.trenutnaMrtvaStabla.observe(viewLifecycleOwner) { mrtvaStabla ->
-            mrtvaStabla?.let {
-                adapter.updateData(mrtvaStabla)
-            }
-        }
-
-
 
         return view;
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        viewLifecycleOwner.lifecycleScope.launch{
+            //pratimo promene u mrtvim stablima!!!
+            krugViewModel.trenutnaMrtvaStabla.observe(viewLifecycleOwner) { mrtvaStabla ->
+                adapter.updateData(mrtvaStabla)
+            }
+            setupRecyclerView(view)
+        }
+
+    }
+
+    fun setupRecyclerView(view : View){
+        krugViewModel.getMrtvaStablaByKrug()
+        recyclerView = view.findViewById(R.id.deadTreesRecyclerView)
+        adapter = DeadTreesAdapter(mutableListOf(),this@DeadTreesFragment)
+        recyclerView.layoutManager = LinearLayoutManager(context)
+        recyclerView.adapter = adapter
     }
 
     companion object {

@@ -12,7 +12,7 @@ import java.util.UUID
         childColumns = ["krugId"],
         onDelete = ForeignKey.CASCADE
     )],
-    indices = [Index("userId")]
+    indices = [Index("krugId")]
 )
 data class MrtvoStablo (
     @PrimaryKey

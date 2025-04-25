@@ -17,4 +17,5 @@ data class Dokument(
         return brOdeljenja == 0 ||  gazJedinica == 0 || odsek == "" || korisnik == 0
     }
 
+
 }

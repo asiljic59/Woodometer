@@ -2,23 +2,31 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/treeMaterialCardView"
-    android:layout_width="wrap_content"
+    android:layout_width="50dp"
     android:layout_height="match_parent"
     android:layout_marginRight="5dp"
-    android:background="@color/white"
     android:backgroundTint="@color/white"
     app:cardCornerRadius="10dp"
     app:cardElevation="10dp"
     app:strokeColor="@color/forest_green"
     app:strokeWidth="2dp">
 
+    <ImageView
+        android:id="@+id/forestImageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="forest"
+        android:scaleType="centerCrop"
+        android:src="@drawable/kitnjak" />
+
     <TextView
         android:id="@+id/stabloRbrTextView"
-        android:layout_width="40dp"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:gravity="center"
         android:text="1"
-        android:textSize="18sp"
+        android:textColor="@color/light_gray"
+        android:textSize="24sp"
         android:textStyle="bold" />
 </com.google.android.material.card.MaterialCardView>

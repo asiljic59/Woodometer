@@ -19,6 +19,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.woodometer.R
+import com.example.woodometer.activities.MainActivity
 import com.example.woodometer.adapters.TreesAdapter
 import com.example.woodometer.databinding.FragmentCircleBinding
 import com.example.woodometer.interfaces.KeyboardListener
@@ -32,6 +33,7 @@ import com.example.woodometer.utils.KeyboardUtils.currentInputField
 import com.example.woodometer.utils.KeyboardUtils.setupInputKeyboardClickListeners
 import com.example.woodometer.viewmodels.KrugViewModel
 import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 // TODO: Rename parameter arguments, choose names that match
@@ -56,7 +58,7 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
     //polja koja otvaraju tastaturu
     private lateinit var keyboardTextViews : HashMap<ConstraintLayout,Triple<TextInputEditText,String,KeyboardField>>
     private lateinit var vrstaButton : Button
-    private var currentTreeType = 0
+
 
     private lateinit var stablaRecyclerView : RecyclerView
     private lateinit var adapter: TreesAdapter
@@ -78,40 +80,60 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentCircleBinding.inflate(inflater, container, false)
-
-        // Initialize ViewModel
         krugViewModel = ViewModelProvider(requireActivity())[KrugViewModel::class.java]
+
         _binding!!.lifecycleOwner = viewLifecycleOwner
         binding.krugVM = krugViewModel
-
-        krugViewModel.setStablaKruga()
-        krugViewModel.setDefaultStablo()
-
-        setupTreesRecyclerView()
-
-        // Setup keyboard
-        createKeyboardHashMap(binding.root)
-        setupInputKeyboardClickListeners(keyboardTextViews,parentFragmentManager,this)
-
-        // Handle button click
-        vrstaButton = binding.vrstaDrvetaButton
-        vrstaButton.setOnClickListener {
-            TreeTypesFragment().apply {
-                setListener(this@CircleFragment)
-            }.show(parentFragmentManager, null)
-        }
-
-        binding.mrtvaStablaButton.setOnClickListener{
-            parentFragmentManager.beginTransaction().replace(R.id.main,DeadTreesFragment()).addToBackStack(null).commit()
-        }
-        binding.biodiverzitetButton.setOnClickListener{
-            parentFragmentManager.beginTransaction().replace(R.id.main,BiodiversityFragment()).addToBackStack(null).commit()
-        }
-        binding.addTreeButton.setOnClickListener{
-            addTreeButtonClicked()
-        }
-
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        adapter = TreesAdapter(mutableListOf(),this)
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            //Ako postoji bar jedno stablo u krugu, pamtimo njegov hash da bi kada dolazi do menjanja stabala znali da li da cuvamo ili ne
+            krugViewModel.setStablaKruga()
+
+            krugViewModel.stablaKruga.observe(viewLifecycleOwner) { stabla ->
+                adapter.updateData(stabla)
+            }
+            // Handle button click
+            vrstaButton = binding.vrstaDrvetaButton
+            vrstaButton.setOnClickListener {
+                TreeTypesFragment().apply {
+                    setListener(this@CircleFragment)
+                }.show(parentFragmentManager, null)
+            }
+            krugViewModel.trenutnoStablo.observe(viewLifecycleOwner){stablo ->
+                vrstaButton.text = VRSTE_DRVECA.find{ it.first == stablo.vrsta}?.second
+            }
+            setupTreesRecyclerView()
+
+            // Setup keyboard
+            createKeyboardHashMap()
+            setupInputKeyboardClickListeners(keyboardTextViews,parentFragmentManager,this@CircleFragment)
+
+            binding.mrtvaStablaButton.setOnClickListener{
+                parentFragmentManager.beginTransaction().replace(R.id.main,DeadTreesFragment()).addToBackStack(null).commit()
+            }
+            binding.biodiverzitetButton.setOnClickListener{
+                parentFragmentManager.beginTransaction().replace(R.id.main,BiodiversityFragment()).addToBackStack(null).commit()
+            }
+            binding.addTreeButton.setOnClickListener{
+                addTreeButtonClicked()
+            }
+            binding.saveTreeButton.setOnClickListener{
+                saveTreeButtonClicked()
+            }
+
+            binding.trenutniKrugTextView.text = krugViewModel.trenutniKrug.value?.brKruga.toString()
+            binding.brojStablaTextView.text = krugViewModel.trenutnoStablo.value?.rbr.toString()
+
+        }
+
+
+
     }
 
     companion object {
@@ -135,53 +157,38 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
     }
     private fun setupTreesRecyclerView(){
         stablaRecyclerView = binding.treesRecyclerView
-        adapter = TreesAdapter(krugViewModel.stablaKruga.value?.sortedBy { it.rbr }?.toMutableList()!!,this)
+        adapter = TreesAdapter(mutableListOf(), this)
         stablaRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         stablaRecyclerView.adapter = adapter
-        krugViewModel.stablaKruga.observe(viewLifecycleOwner){stabla ->
-            adapter.updateData(stabla)
-        }
-        krugViewModel.trenutnoStablo.observe(viewLifecycleOwner){stablo ->
-            vrstaButton.text = VRSTE_DRVECA.find{ it.first == stablo.vrsta}?.second
-        }
     }
 
     private fun addTreeButtonClicked(){
-        if (krugViewModel.trenutnoStablo.value?.hasAnyNonDefaultVal() == true){
+        krugViewModel.resetStablo()
+        binding.brojStablaTextView.text = krugViewModel.trenutnoStablo.value?.rbr.toString()
+    }
+
+    private fun saveTreeButtonClicked(){
+        if (krugViewModel.trenutnoStablo.value?.hasAnyNonDefaultVal()!!){
             krugViewModel.updateTrenutnoStablo()
-            krugViewModel.resetStablo()
         }else{
             Toast.makeText(context, "Morate popuniti bar neku vrednost da biste kreirali novo stablo!", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun isTreeValid(): Boolean{
-        val stablo = krugViewModel.trenutnoStablo.value!!
-        return true
+    private fun createKeyboardHashMap() {
+        keyboardTextViews = hashMapOf(
+            binding.precnikLayout to Triple(binding.precnikTextView, "Prečnik", KeyboardField.PRECNIK),
+            binding.azimutLayout to Triple(binding.azimutTextView, "Azimut", KeyboardField.AZIMUT),
+            binding.razdaljinaLayout to Triple(binding.razdaljinaTextView, "Razdaljina", KeyboardField.RAZDALJINA),
+            binding.visinaLayout to Triple(binding.visinaTextView, "Visina", KeyboardField.VISINA),
+            binding.duzinaDeblaLayout to Triple(binding.duzinaDeblaTextView, "Dužina debla", KeyboardField.DUZINA_DEBLA),
+            binding.stepenSusenjaLayout to Triple(binding.stepenSusenjaTextView, "Stepen sušenja", KeyboardField.STEPEN_SUSENJA),
+            binding.socStatusLayout to Triple(binding.socStatusTextView, "Socijalni status", KeyboardField.SOCIJALNI_STATUS),
+            binding.tehnickaKlasaLayout to Triple(binding.tehKlasaTextView, "Tehnička klasa", KeyboardField.TEHNICKA_KLASA),
+            binding.probnaDoznakaLayout to Triple(binding.probDoznakaTextView, "Probna doznaka", KeyboardField.PROBNA_DOZNAKA),
+        )
     }
 
-    private fun createKeyboardHashMap(view: View){
-        keyboardTextViews = hashMapOf(
-            view.findViewById<ConstraintLayout>(R.id.precnikLayout) to
-            Triple(view.findViewById(R.id.precnikTextView),"Prečnik",KeyboardField.PRECNIK),
-            view.findViewById<ConstraintLayout>(R.id.azimutLayout) to
-            Triple(view.findViewById(R.id.azimutTextView),"Azimut",KeyboardField.AZIMUT),
-            view.findViewById<ConstraintLayout>(R.id.razdaljinaLayout) to
-            Triple(view.findViewById(R.id.razdaljinaTextView),"Razdaljina",KeyboardField.RAZDALJINA),
-            view.findViewById<ConstraintLayout>(R.id.visinaLayout) to
-            Triple(view.findViewById(R.id.visinaTextView),"Visina",KeyboardField.VISINA),
-            view.findViewById<ConstraintLayout>(R.id.duzinaDeblaLayout) to
-            Triple(view.findViewById(R.id.duzinaDeblaTextView),"Dužina debla", KeyboardField.DUZINA_DEBLA),
-            view.findViewById<ConstraintLayout>(R.id.stepenSusenjaLayout) to
-            Triple(view.findViewById(R.id.stepenSusenjaTextView),"Stepen sušenja", KeyboardField.STEPEN_SUSENJA),
-            view.findViewById<ConstraintLayout>(R.id.socStatusLayout) to
-            Triple(view.findViewById(R.id.socStatusTextView),"Socijalni status", KeyboardField.SOCIJALNI_STATUS),
-            view.findViewById<ConstraintLayout>(R.id.tehnickaKlasaLayout) to
-            Triple(view.findViewById(R.id.tehKlasaTextView),"Tehnička klasa", KeyboardField.TEHNICKA_KLASA),
-            view.findViewById<ConstraintLayout>(R.id.probnaDoznakaLayout) to
-            Triple(view.findViewById(R.id.probDoznakaTextView),"Probna doznaka", KeyboardField.PROBNA_DOZNAKA),
-            )
-    }
 
 
     override fun onEnterPressed(input: String) {
@@ -195,23 +202,23 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
 
     override fun setTreeType(name: String, key: Int) {
         vrstaButton.text = name
-        currentTreeType = key
+        binding.vrstaTextView.setText(key.toString())
     }
 
     override fun changeTree(stablo : Stablo) {
-        if (krugViewModel.trenutnoStablo.value?.hasAnyNonDefaultVal() == true){
-            krugViewModel.updateTrenutnoStablo()
-
-        }
+        if (stablo.id == krugViewModel.trenutnoStablo.value?.id){return}
+        adapter.updateSelectedStablo(krugViewModel.trenutnoStablo.value?.rbr!!,stablo.rbr)
         krugViewModel.setTrenutnoStablo(stablo)
+        binding.brojStablaTextView.text = krugViewModel.trenutnoStablo.value?.rbr.toString()
     }
 
     override fun deleteTree(rbr: Int) {
-        TODO("Not yet implemented")
+        val activity = requireActivity() as MainActivity
+        activity.showDeleteConfirmationDialog(this,rbr)
     }
 
     override fun deleteConfirmed(deleted: Boolean, rbr: Int) {
-        TODO("Not yet implemented")
+        krugViewModel.deleteStablo(rbr)
     }
 
     override fun editTree(item: MrtvoStablo) {

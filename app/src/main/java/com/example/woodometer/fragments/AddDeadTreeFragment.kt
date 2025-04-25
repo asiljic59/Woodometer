@@ -79,6 +79,12 @@ class AddDeadTreeFragment : Fragment(),KeyboardListener,TreeTypeListener {
         _binding!!.lifecycleOwner = viewLifecycleOwner
         binding.krugVM = krugVM
 
+        return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        createKeyboardHashMap()
         KeyboardUtils.setupInputKeyboardClickListeners(keyboardTextViews,parentFragmentManager,this@AddDeadTreeFragment)
 
         binding.saveButton.setOnClickListener {
@@ -90,10 +96,14 @@ class AddDeadTreeFragment : Fragment(),KeyboardListener,TreeTypeListener {
                 Toast.makeText(context, "Morate uneti sve parametre mrtvog stabla!", Toast.LENGTH_SHORT).show()
             }
         }
-
-        return view
     }
-
+    private fun createKeyboardHashMap(){
+        keyboardTextViews = hashMapOf(
+            binding.precnikLayout to Triple(binding.precnikTextView,"Prečnik",KeyboardField.PRECNIK),
+            binding.polozajStablaLayout to Triple(binding.polozajStablaTextView,"Položaj stabla",KeyboardField.POLOZAJ_STABLA),
+            binding.visinaLayout to Triple(binding.visinaTextView,"Visina/Dužina stabla",KeyboardField.VISINA)
+        )
+    }
 
     companion object {
         /**
@@ -147,7 +157,7 @@ class AddDeadTreeFragment : Fragment(),KeyboardListener,TreeTypeListener {
 
     override fun setTreeType(name: String, key: Int) {
         vrstaButton.text = name
-        currentTreeType = key
+        binding.sifraVrstaTextView.setText(key.toString())
     }
 
 

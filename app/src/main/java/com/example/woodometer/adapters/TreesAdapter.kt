@@ -12,8 +12,11 @@ import com.example.woodometer.interfaces.TreeListener
 import com.example.woodometer.model.MrtvoStablo
 import com.example.woodometer.model.Stablo
 import com.google.android.material.card.MaterialCardView
+import java.util.UUID
 
 class TreesAdapter(var stabla : MutableList<Stablo>,val listener : TreeListener) : RecyclerView.Adapter<TreesAdapter.ViewHolder>(){
+    var selectedStabloRbr: Int = 1
+    var oldStabloRbr : Int = 0;
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val rbrTextView = view.findViewById<TextView>(R.id.stabloRbrTextView)
         val card = view.findViewById<MaterialCardView>(R.id.treeMaterialCardView)
@@ -29,6 +32,23 @@ class TreesAdapter(var stabla : MutableList<Stablo>,val listener : TreeListener)
         val item = stabla[position]
         item.rbr.toString().also { holder.rbrTextView.text = it }
         holder.card.setOnClickListener{listener.changeTree(item)}
+
+        if (item.rbr == selectedStabloRbr) {
+            holder.card.strokeColor = holder.card.context.getColor(R.color.olive) // your defined highlight color
+            holder.card.strokeWidth = 5
+            holder.card.elevation = 10F
+        }else if (item.rbr == oldStabloRbr){
+            holder.card.strokeColor = holder.card.context.getColor(R.color.white)
+            holder.card.strokeWidth = 5
+        }
+
+        holder.card.setOnClickListener {
+            listener.changeTree(item)
+        }
+        holder.card.setOnLongClickListener{
+            listener.deleteTree(item.rbr)
+            true
+        }
     }
 
     override fun getItemCount() = stabla.size
@@ -39,6 +59,12 @@ class TreesAdapter(var stabla : MutableList<Stablo>,val listener : TreeListener)
         val diffResult = DiffUtil.calculateDiff(TreeDiffCallback(stabla, newData))
         stabla = sortedData.toMutableList()
         diffResult.dispatchUpdatesTo(this)
+    }
+
+    fun updateSelectedStablo(oldRbr : Int,newRbr : Int) {
+        selectedStabloRbr = newRbr
+        notifyItemChanged(newRbr-1)
+        notifyItemChanged(oldRbr-1)
     }
 
     class TreeDiffCallback(

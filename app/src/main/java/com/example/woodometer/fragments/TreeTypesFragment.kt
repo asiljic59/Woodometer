@@ -129,7 +129,7 @@ class TreeTypesFragment : DialogFragment(),TreeTypeListener {
     //Funkcija za azuriranje vrsti drveca
     private fun fetchTreeTypes() {
         if (currentInput.toString().length >= 2){
-            var value : String = currentInput.toString().take(2)
+            val value : String = currentInput.toString().take(2)
             val match = VRSTE_DRVECA.find { it.first == value.toInt() }
             if (match != null) {
                 adapter.updateData(listOf(match))
