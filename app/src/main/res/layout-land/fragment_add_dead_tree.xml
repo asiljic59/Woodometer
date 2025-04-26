@@ -21,11 +21,19 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:padding="16dp"
+            android:padding="10dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/scrollView"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
+
+            <ImageButton
+                android:id="@+id/closeButton2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right|top"
+                android:backgroundTint="@android:color/transparent"
+                app:srcCompat="@drawable/outline_close_24" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/polozajStablaLayout"
@@ -46,21 +54,21 @@
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/polozajStablaTextView"
-                    app:intText="@={krugVM.mrtvoStablo.polozaj}"
-                    android:inputType="number"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="30dp"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/textView2"
-                    app:layout_constraintTop_toTopOf="parent"
                     android:background="@android:color/transparent"
+                    android:clickable="true"
+                    android:cursorVisible="false"
                     android:focusable="false"
                     android:focusableInTouchMode="false"
-                    android:cursorVisible="false"
-                    android:clickable="true"/>
+                    android:inputType="number"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    app:intText="@={krugVM.mrtvoStablo.polozaj}"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/textView2"
+                    app:layout_constraintTop_toTopOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -82,18 +90,18 @@
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/precnikTextView"
-                    app:floatText="@={krugVM.mrtvoStablo.precnik}"
-                    android:inputType="numberDecimal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="30dp"
                     android:background="@android:color/transparent"
+                    android:clickable="true"
+                    android:cursorVisible="false"
                     android:focusable="false"
                     android:focusableInTouchMode="false"
-                    android:cursorVisible="false"
-                    android:clickable="true"
+                    android:inputType="numberDecimal"
                     android:textSize="20sp"
                     android:textStyle="bold"
+                    app:floatText="@={krugVM.mrtvoStablo.precnik}"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/textView17"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -120,20 +128,20 @@
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/visinaTextView"
-                    app:intText="@={krugVM.mrtvoStablo.visina}"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="30dp"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:inputType="number"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/textView16"
-                    app:layout_constraintTop_toTopOf="parent"
                     android:background="@android:color/transparent"
+                    android:cursorVisible="false"
                     android:focusable="false"
                     android:focusableInTouchMode="false"
-                    android:cursorVisible="false" /> <!-- Important! -->
+                    android:inputType="number"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    app:intText="@={krugVM.mrtvoStablo.visina}"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/textView16"
+                    app:layout_constraintTop_toTopOf="parent" /> <!-- Important! -->
             </androidx.constraintlayout.widget.ConstraintLayout>
 
 
@@ -161,11 +169,11 @@
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/sifraVrstaTextView"
-                    app:intText="@={krugVM.mrtvoStablo.vrsta}"
-                    android:inputType="number"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:inputType="number"
                     android:visibility="gone"
+                    app:intText="@={krugVM.mrtvoStablo.vrsta}"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 

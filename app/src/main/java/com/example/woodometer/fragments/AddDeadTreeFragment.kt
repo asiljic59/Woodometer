@@ -96,6 +96,9 @@ class AddDeadTreeFragment : Fragment(),KeyboardListener,TreeTypeListener {
                 Toast.makeText(context, "Morate uneti sve parametre mrtvog stabla!", Toast.LENGTH_SHORT).show()
             }
         }
+        binding.closeButton2.setOnClickListener{
+            parentFragmentManager.popBackStack()
+        }
     }
     private fun createKeyboardHashMap(){
         keyboardTextViews = hashMapOf(

@@ -15,6 +15,7 @@ import com.example.woodometer.repository.BiodiverzitetRepository
 import com.example.woodometer.repository.KrugRepository
 import com.example.woodometer.repository.MrtvoStabloRepository
 import com.example.woodometer.repository.StabloRepository
+import com.example.woodometer.utils.PreferencesUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,11 +33,14 @@ class KrugViewModel : ViewModel() {
     private val biodiverzitetRepository : BiodiverzitetRepository = BiodiverzitetRepository()
     private val mrtvoStabloRepository : MrtvoStabloRepository = MrtvoStabloRepository()
 
-
+    // ovo koristimo za edit/preview kruga
     private val _trenutniKrug = MutableLiveData<Krug>().apply {
         value = Krug()
     }
-
+    //ovo ce nam samo sluzitit da znamo da li se neki krug radi i da li treba da se zavrsi
+    private val _radniKrug = MutableLiveData<Krug?>().apply {
+        value = null
+    }
     private val _trenutnoStablo = MutableLiveData<Stablo>().apply {
         value = Stablo ()
     }
@@ -55,6 +59,7 @@ class KrugViewModel : ViewModel() {
     }
 
     val trenutniKrug: LiveData<Krug> get() = _trenutniKrug
+    val radniKrug : LiveData<Krug?> get() = _radniKrug
     val trenutnaMrtvaStabla: LiveData<MutableList<MrtvoStablo>> = _trenutnaMrtvaStabla
     val trenutnoStablo: LiveData<Stablo> get() = _trenutnoStablo
     val stablaKruga : LiveData<MutableList<Stablo>> get() = _stablaKruga
@@ -78,9 +83,11 @@ class KrugViewModel : ViewModel() {
 
 
     fun resetStablo() {
-        val stablaList = _stablaKruga.value ?: emptyList()
-        val rbr = stablaList.maxOfOrNull { it.rbr } ?: 0
-        _trenutnoStablo.value = _trenutniKrug.value?.id?.let { Stablo(rbr = rbr+1, krugId = it) }
+        viewModelScope.launch {
+            val stablaList = _stablaKruga.value ?: emptyList()
+            val rbr = stablaList.maxOfOrNull { it.rbr } ?: 0
+            _trenutnoStablo.value  = _trenutniKrug.value?.id?.let { Stablo(rbr = rbr+1, krugId = it) }
+        }
     }
     fun deleteStablo(rbr: Int) {
         viewModelScope.launch {
@@ -123,13 +130,12 @@ class KrugViewModel : ViewModel() {
     //BRISANJE MRTVOG STABLA
     fun deleteMrtvoStablo(rbr : Int){
         viewModelScope.launch {
-            withContext(Dispatchers.IO){withContext(Dispatchers.IO){
+            withContext(Dispatchers.IO){
                 val stablo = trenutnaMrtvaStabla.value?.find { it.rbr == rbr }
                 mrtvoStabloRepository.delete(stablo!!)
                 val updatedList = trenutnaMrtvaStabla.value?.toMutableList() ?: mutableListOf()
                 updatedList.removeAll{it.rbr == rbr}
                 _trenutnaMrtvaStabla.postValue(updatedList)
-            }
             }
         }
     }
@@ -137,13 +143,17 @@ class KrugViewModel : ViewModel() {
     fun editMrtvoStablo() {
         viewModelScope.launch {
             withContext(Dispatchers.IO){
-                mrtvoStablo.value?.let { mrtvoStabloRepository.upsert(it) }
-                val updatedList = trenutnaMrtvaStabla.value?.toMutableList() ?: mutableListOf()
-                updatedList.removeAll{it.rbr == mrtvoStablo.value?.rbr}
-                mrtvoStablo.value?.let { updatedList.add(it) }
-                _trenutnaMrtvaStabla.postValue(updatedList)
-                val nextRbr = updatedList.maxOfOrNull { it.rbr } ?: 0
-                _trenutnoMrtvoStablo.postValue(MrtvoStablo(rbr = nextRbr + 1,krugId = _trenutniKrug.value?.id!! ))
+                mrtvoStablo.value?.let { newStablo ->
+                    mrtvoStabloRepository.upsert(newStablo)
+                    val updatedList = _trenutnaMrtvaStabla.value?.toMutableList() ?: mutableListOf()
+                    // Racunamo novi redni broj tako sto uzimamo maximum iz liste +1
+                    val existingIndex = updatedList.indexOfFirst { it.id == newStablo.id }
+                    if (existingIndex != -1) {updatedList[existingIndex] = newStablo}
+                    val maxRbr = updatedList.maxOfOrNull { it.rbr } ?: 0  // If list is empty, start from 1
+                    _trenutnaMrtvaStabla.postValue(updatedList)
+                    // Update the _trenutnoMrtvoStablo LiveData
+                    _trenutnoMrtvoStablo.postValue(MrtvoStablo(rbr = maxRbr + 1,krugId = trenutniKrug.value?.id!!))
+                }
             }
         }
     }
@@ -159,10 +169,19 @@ class KrugViewModel : ViewModel() {
             }
         }
     }
+    fun updateMrtvaStabla() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                val stabla  = trenutniKrug.value?.let { mrtvoStabloRepository.getByKrug(it.id) }
+                _trenutnaMrtvaStabla.postValue(stabla!!)
+            }
+        }
+    }
     ////MRTVA STABLA !!!! CRUD
 
-    fun resetKrug(dokumentId : UUID) {
+    suspend fun resetKrug(dokumentId : UUID) {
         _trenutniKrug.value?.dokumentId = dokumentId
+        _radniKrug.value = _trenutniKrug.value
         addKrug()
         _stablaKruga.postValue(mutableListOf())
         _trenutnoStablo.postValue(Stablo(krugId = _trenutniKrug.value?.id!!))
@@ -180,7 +199,20 @@ class KrugViewModel : ViewModel() {
     }
 
     fun setTrenutniKrug(krug : Krug) {
-        _trenutniKrug.postValue(krug)
+        _trenutniKrug.value = krug
+        _trenutnoStablo.value = Stablo(krugId = krug.id)
+    }
+
+    fun setRadniKrug(id : UUID){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                _radniKrug.postValue(krugRepository.getById(id))
+            }
+        }
+    }
+
+    fun setDefaultRadniKrug(){
+        _radniKrug.postValue(null)
     }
 
     fun setStablaKruga() {
@@ -227,6 +259,26 @@ class KrugViewModel : ViewModel() {
         }
     }
 
+    fun isKrugValid() : Pair<Boolean,List<Int>> {
+        val invalidStabla = areStablaValid()
+        val isValid = invalidStabla.isEmpty()
+        return Pair(isValid,invalidStabla)
+    }
+    //provera da li su SVA stabla kruga validna!
+    fun areStablaValid() : List<Int>{
+        val invalidStabla : MutableList<Int> = mutableListOf()
+
+        stablaKruga.value?.forEach{stablo ->
+            if (stablo.hasAnyDefaultVal(radniKrug.value?.permanentna!!)){
+                invalidStabla.add(stablo.rbr)
+            }
+        }
+        return invalidStabla
+    }
+
+    fun setDefaultStablo() {
+        _trenutnoStablo.postValue(trenutniKrug.value?.id?.let { Stablo(krugId = it) })
+    }
 
 
 }

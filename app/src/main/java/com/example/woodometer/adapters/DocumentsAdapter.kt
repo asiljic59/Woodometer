@@ -12,12 +12,16 @@ import com.example.woodometer.interfaces.DocumentsListener
 import com.example.woodometer.model.Dokument
 import com.example.woodometer.model.MrtvoStablo
 import com.google.android.material.card.MaterialCardView
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class DocumentsAdapter(private var docs : List<Dokument>,private val documentsListener : DocumentsListener) :
     RecyclerView.Adapter<DocumentsAdapter.NumberViewHolder>() {
 
         class NumberViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             val numberText: TextView = itemView.findViewById(R.id.itemText)
+            val date : TextView = itemView.findViewById(R.id.dateTextView)
             val documentCardView : MaterialCardView = itemView.findViewById(R.id.documentCardView)
         }
 
@@ -29,6 +33,7 @@ class DocumentsAdapter(private var docs : List<Dokument>,private val documentsLi
 
         override fun onBindViewHolder(holder: NumberViewHolder, position: Int) {
             holder.numberText.text = formatText(docs[position])
+            holder.date.text = formatTimestamp(docs[position].timestamp)
             holder.documentCardView.setOnClickListener{
                 documentsListener.docClicked(docs[position])
             }
@@ -36,6 +41,12 @@ class DocumentsAdapter(private var docs : List<Dokument>,private val documentsLi
         }
         fun formatText(dokument: Dokument) : String{
             return "${dokument.gazJedinica}${dokument.brOdeljenja}_${dokument.odsek}_${dokument.korisnik}"
+        }
+        fun formatTimestamp(timestamp: Long): String {
+            val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+                .withZone(ZoneId.systemDefault())
+
+            return formatter.format(Instant.ofEpochMilli(timestamp))
         }
 
         override fun getItemCount() = docs.size

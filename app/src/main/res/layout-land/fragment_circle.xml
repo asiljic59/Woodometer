@@ -613,7 +613,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="50dp"
             android:background="@color/design_default_color_surface"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -635,9 +635,9 @@
                 app:srcCompat="@drawable/baseline_arrow_back_ios_24" />
 
             <Button
-                android:id="@+id/endTreeButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:id="@+id/endCircleButton"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
                 android:layout_marginEnd="20dp"
                 android:backgroundTint="@color/line_color"
                 android:text="Završi krug"
@@ -651,10 +651,12 @@
 
             <TextView
                 android:id="@+id/textView7"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="15dp"
-                android:text="Trenutni krug"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:text="Trenutni krug: "
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -663,11 +665,11 @@
 
             <TextView
                 android:id="@+id/trenutniKrugTextView"
-                android:textSize="16sp"
-                android:textStyle="bold"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="15dp"
+                android:textSize="16sp"
+                android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/textView7"
                 app:layout_constraintTop_toTopOf="parent" />

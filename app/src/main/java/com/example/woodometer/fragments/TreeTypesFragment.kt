@@ -52,6 +52,12 @@ class TreeTypesFragment : DialogFragment(),TreeTypeListener {
         this.listener = listener
     }
 
+    private var startTreeType : Int = 11
+
+    fun setStartTreeType (startTreeType : Int){
+        this.startTreeType = startTreeType
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,8 +78,10 @@ class TreeTypesFragment : DialogFragment(),TreeTypeListener {
 
         recyclerView = view.findViewById(R.id.treeTypesRecyclerView)
         adapter = TreeTypesAdapter(VRSTE_DRVECA,this)
+        val startIndex = VRSTE_DRVECA.indexOfFirst { it.first == startTreeType }
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = adapter
+        recyclerView.scrollToPosition(startIndex)
 
         view.findViewById<Button>(R.id.btnX).setOnClickListener{
             clearDisplay()

@@ -38,7 +38,6 @@ class DokumentViewModel : ViewModel() {
 
     fun setTrenuntniDokument(dokument: Dokument){
         _trenutniDokument.postValue(dokument)
-        getKrugovi()
     }
 
     init {
@@ -47,7 +46,7 @@ class DokumentViewModel : ViewModel() {
         getKrugovi()
     }
 
-    private fun getKrugovi() {
+    fun getKrugovi() {
         viewModelScope.launch {
             withContext(Dispatchers.IO){
                 val krugovi = _trenutniDokument.value?.let { krugRepository.getByDokument(it.id) }
@@ -94,8 +93,8 @@ class DokumentViewModel : ViewModel() {
         }
     }
 
-    fun setTrenutniKrugovi(){
-
+    fun setTrenutniKrugovi(krugovi : MutableList<Krug>){
+        _krugovi.postValue(krugovi)
     }
 
 

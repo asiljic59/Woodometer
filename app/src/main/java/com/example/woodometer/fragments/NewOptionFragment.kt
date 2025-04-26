@@ -1,6 +1,7 @@
 package com.example.woodometer.fragments
 
 import android.os.Bundle
+import android.view.Gravity
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -88,6 +89,24 @@ class NewOptionFragment : DialogFragment() {
 
         }
         return true
+    }
+    override fun onStart() {
+        super.onStart()
+        dialog?.window?.let { window ->
+            val params = window.attributes
+            params.gravity = Gravity.CENTER
+            params.y = 0
+
+            val scale = resources.displayMetrics.density
+            val widthInPx = (500 * scale + 0.5f).toInt()
+            val heightInPx = (200 * scale + 0.5f).toInt()
+
+            // Set both width and height at once
+            window.setLayout(widthInPx, heightInPx)
+
+            window.attributes = params
+        }
+
     }
 
     companion object {

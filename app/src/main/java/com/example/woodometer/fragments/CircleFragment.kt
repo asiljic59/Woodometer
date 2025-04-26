@@ -7,12 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.TextView
-import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.replace
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -22,15 +17,20 @@ import com.example.woodometer.R
 import com.example.woodometer.activities.MainActivity
 import com.example.woodometer.adapters.TreesAdapter
 import com.example.woodometer.databinding.FragmentCircleBinding
+import com.example.woodometer.interfaces.CircleListener
 import com.example.woodometer.interfaces.KeyboardListener
 import com.example.woodometer.interfaces.TreeListener
 import com.example.woodometer.interfaces.TreeTypeListener
+import com.example.woodometer.model.Krug
 import com.example.woodometer.model.MrtvoStablo
 import com.example.woodometer.model.Stablo
 import com.example.woodometer.model.enumerations.KeyboardField
 import com.example.woodometer.utils.GlobalUtils.VRSTE_DRVECA
 import com.example.woodometer.utils.KeyboardUtils.currentInputField
 import com.example.woodometer.utils.KeyboardUtils.setupInputKeyboardClickListeners
+import com.example.woodometer.utils.NotificationsUtils.showErrToast
+import com.example.woodometer.utils.NotificationsUtils.showSuccessToast
+import com.example.woodometer.utils.PreferencesUtils
 import com.example.woodometer.viewmodels.KrugViewModel
 import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.delay
@@ -46,7 +46,7 @@ private const val ARG_PARAM2 = "param2"
  * Use the [CircleFragment.newInstance] factory method to
  * c.reate an instance of this fragment.
  */
-class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListener {
+class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListener,CircleListener {
 
     private var _binding: FragmentCircleBinding? = null
     private val binding get() = _binding!! // Safe to use after onCreateView
@@ -84,6 +84,8 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
 
         _binding!!.lifecycleOwner = viewLifecycleOwner
         binding.krugVM = krugViewModel
+
+        binding.backButton.setOnClickListener{parentFragmentManager.popBackStack()}
         return binding.root
     }
 
@@ -98,16 +100,21 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
             krugViewModel.stablaKruga.observe(viewLifecycleOwner) { stabla ->
                 adapter.updateData(stabla)
             }
-            // Handle button click
+            // Handle tree type button click
             vrstaButton = binding.vrstaDrvetaButton
             vrstaButton.setOnClickListener {
                 TreeTypesFragment().apply {
                     setListener(this@CircleFragment)
+                    krugViewModel.trenutnoStablo.value?.vrsta?.let { it1 -> setStartTreeType(it1) }
                 }.show(parentFragmentManager, null)
             }
+            //menjanje vrste drveca i broja stabla kada se promeni stablo
             krugViewModel.trenutnoStablo.observe(viewLifecycleOwner){stablo ->
                 vrstaButton.text = VRSTE_DRVECA.find{ it.first == stablo.vrsta}?.second
+                binding.brojStablaTextView.text = stablo?.rbr.toString()
             }
+
+            //prikaz stabla u scrollu/recycler view
             setupTreesRecyclerView()
 
             // Setup keyboard
@@ -126,10 +133,12 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
             binding.saveTreeButton.setOnClickListener{
                 saveTreeButtonClicked()
             }
+            binding.endCircleButton.setOnClickListener{
+                endCircleButtonClicked()
+            }
+            setupWorkingTreeButtons()
 
             binding.trenutniKrugTextView.text = krugViewModel.trenutniKrug.value?.brKruga.toString()
-            binding.brojStablaTextView.text = krugViewModel.trenutnoStablo.value?.rbr.toString()
-
         }
 
 
@@ -155,6 +164,14 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
                 }
             }
     }
+    //Funkcija koja sluzi da sklonimo "zavrsi krug" ako je krug vec zavrsen kao i da se skloni "dodaj krug" dugme ako je krug vec uradjen
+    private fun setupWorkingTreeButtons(){
+        if (krugViewModel.trenutniKrug.value?.id != krugViewModel.radniKrug.value?.id){
+            binding.endCircleButton.visibility = View.GONE
+            binding.addTreeButton.visibility = View.INVISIBLE
+        }
+    }
+
     private fun setupTreesRecyclerView(){
         stablaRecyclerView = binding.treesRecyclerView
         adapter = TreesAdapter(mutableListOf(), this)
@@ -164,15 +181,19 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
 
     private fun addTreeButtonClicked(){
         krugViewModel.resetStablo()
-        binding.brojStablaTextView.text = krugViewModel.trenutnoStablo.value?.rbr.toString()
     }
 
     private fun saveTreeButtonClicked(){
         if (krugViewModel.trenutnoStablo.value?.hasAnyNonDefaultVal()!!){
             krugViewModel.updateTrenutnoStablo()
+            showSuccessToast(context,"Sačuvano stablo ${krugViewModel.trenutnoStablo.value?.rbr}")
         }else{
-            Toast.makeText(context, "Morate popuniti bar neku vrednost da biste kreirali novo stablo!", Toast.LENGTH_SHORT).show()
+            showErrToast(context, "Morate popuniti bar neku vrednost da biste kreirali novo stablo!")
         }
+    }
+
+    private fun endCircleButtonClicked(){
+        (activity as MainActivity).showEndCircleDialog(this,krugViewModel.radniKrug.value!!.brKruga,"Da li ste sigurni da želite da završite krug broj ${krugViewModel.radniKrug.value!!.brKruga}")
     }
 
     private fun createKeyboardHashMap() {
@@ -218,10 +239,31 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
     }
 
     override fun deleteConfirmed(deleted: Boolean, rbr: Int) {
-        krugViewModel.deleteStablo(rbr)
+        if (deleted){
+            krugViewModel.deleteStablo(rbr)
+            krugViewModel.setDefaultStablo()
+        }
     }
 
     override fun editTree(item: MrtvoStablo) {
         TODO("Not yet implemented")
+    }
+
+    override fun circleChanged(krug: Krug) {
+        TODO("Not yet implemented")
+    }
+
+    override fun finishConfirmed(finish: Boolean, rbr: Int) {
+        val isValid : Pair<Boolean,List<Int>> = krugViewModel.isKrugValid()
+        if (!isValid.first){
+            showErrToast(context,"Stabla broj ${isValid.second.joinToString(",") } su invalidna! ")
+            return
+        }
+        if (finish){
+            showSuccessToast(context, "Završen krug broj $rbr.")
+            PreferencesUtils.clearWorkingCircleFromPrefs(context)
+            krugViewModel.setDefaultRadniKrug()
+            parentFragmentManager.popBackStack()
+        }
     }
 }

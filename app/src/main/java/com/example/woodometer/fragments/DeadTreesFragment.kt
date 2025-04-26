@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageButton
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -37,6 +38,7 @@ class DeadTreesFragment : Fragment(),TreeListener {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: DeadTreesAdapter
     private lateinit var krugViewModel: KrugViewModel
+    private var  isRadniKrug : Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,12 +56,22 @@ class DeadTreesFragment : Fragment(),TreeListener {
         val view =  inflater.inflate(R.layout.fragment_dead_trees, container, false)
 
         krugViewModel = ViewModelProvider(requireActivity())[KrugViewModel::class.java]
+        isRadniKrug = krugViewModel.trenutniKrug.value?.id == krugViewModel.radniKrug.value?.id
 
+        if (!isRadniKrug)
+        {
+            view.findViewById<Button>(R.id.addButton).visibility = View.GONE
+        }
         view.findViewById<Button>(R.id.addButton).setOnClickListener{
-            val addTreeFragment = AddDeadTreeFragment().apply {
-                setAddition(true)
-            }
-            parentFragmentManager.beginTransaction().replace(R.id.main,addTreeFragment).addToBackStack(null).commit()
+            addTreeButtonClicked(view)
+        }
+        view.findViewById<ImageButton>(R.id.backButton).setOnClickListener{
+            parentFragmentManager.popBackStack()
+        }
+
+        //pratimo promene u mrtvim stablima!!!
+        krugViewModel.trenutnaMrtvaStabla.observe(viewLifecycleOwner) { mrtvaStabla ->
+            adapter.updateData(mrtvaStabla)
         }
 
         return view;
@@ -68,14 +80,18 @@ class DeadTreesFragment : Fragment(),TreeListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        krugViewModel.updateMrtvaStabla()
         viewLifecycleOwner.lifecycleScope.launch{
-            //pratimo promene u mrtvim stablima!!!
-            krugViewModel.trenutnaMrtvaStabla.observe(viewLifecycleOwner) { mrtvaStabla ->
-                adapter.updateData(mrtvaStabla)
-            }
             setupRecyclerView(view)
         }
 
+    }
+
+    private fun addTreeButtonClicked(view : View){
+        val addTreeFragment = AddDeadTreeFragment().apply {
+            setAddition(true)
+        }
+        parentFragmentManager.beginTransaction().replace(R.id.main,addTreeFragment).addToBackStack(null).commit()
     }
 
     fun setupRecyclerView(view : View){
@@ -112,6 +128,7 @@ class DeadTreesFragment : Fragment(),TreeListener {
 
     //brisanje mrtvog stabla
     override fun deleteTree(rbr: Int) {
+        if (!isRadniKrug) {return}
         val activity = requireActivity() as MainActivity
         activity.showDeleteConfirmationDialog(this,rbr)
     }
@@ -122,6 +139,7 @@ class DeadTreesFragment : Fragment(),TreeListener {
     }
     //azuriranje mrtvog stabla
     override fun editTree(item: MrtvoStablo) {
+        if (!isRadniKrug) {return}
         krugViewModel.setMrtvoStabloToEdit(item)
         val addTreeFragment = AddDeadTreeFragment().apply {
             setAddition(false)

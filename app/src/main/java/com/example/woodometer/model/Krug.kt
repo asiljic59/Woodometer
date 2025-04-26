@@ -32,7 +32,7 @@ data class Krug(
     fun hasAnyDefaultVal() : Boolean{
         return brKruga == 0 || permanentna == null
                 || pristupacnost == null || gazTip == 0
-                || uzgojnaGrupa == 0 || nagib == 0f || (permanentna == true && IdBroj == 0)
+                || uzgojnaGrupa == 0 || nagib == 0f || (permanentna == true && IdBroj == null)
     }
 
 }

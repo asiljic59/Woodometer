@@ -50,9 +50,11 @@ class DeadTreesAdapter(private var measurements: List<MrtvoStablo>,private var l
 
     // Update data with DiffUtil for performance
     fun updateData(newData: List<MrtvoStablo>) {
+        val sortedData = newData.sortedBy { it.rbr }
         val diffResult = DiffUtil.calculateDiff(TreeDiffCallback(measurements, newData))
-        measurements = newData
+        measurements = sortedData.toMutableList()
         diffResult.dispatchUpdatesTo(this)
+        notifyDataSetChanged()
     }
 
     class TreeDiffCallback(
@@ -70,5 +72,6 @@ class DeadTreesAdapter(private var measurements: List<MrtvoStablo>,private var l
         override fun areContentsTheSame(oldPos: Int, newPos: Int): Boolean {
             return oldList[oldPos] == newList[newPos]
         }
+
     }
 }

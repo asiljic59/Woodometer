@@ -35,7 +35,7 @@ private val BIODIVERZITET = listOf(
     R.id.izuzetnaDimenzijaConstraintLayout to R.id.izuzetnaDimenzijaPicker,
     R.id.velikaUsamljenaConstraintLayout to R.id.velikaUsamljenaPicker
 )
-
+private var  isRadniKrug : Boolean = false
 
 /**
  * A simple [Fragment] subclass.
@@ -68,6 +68,7 @@ class BiodiversityFragment : Fragment() {
        _binding = FragmentBiodiversityBinding.inflate(inflater, container, false)
 
         krugViewModel = ViewModelProvider(requireActivity())[KrugViewModel::class.java]
+        isRadniKrug = krugViewModel.trenutniKrug.value?.id == krugViewModel.radniKrug.value?.id
         _binding!!.lifecycleOwner = viewLifecycleOwner
         binding.krugVM = krugViewModel
 
@@ -109,6 +110,9 @@ class BiodiversityFragment : Fragment() {
     private fun setupLayouts(view: View){
         BIODIVERZITET.forEach { (layout,picker) ->
             val numberPicker = view.findViewById<NumberPicker>(picker)
+            if (!isRadniKrug){
+                numberPicker.isEnabled = false
+            }
             numberPicker.minValue = 0
             numberPicker.maxValue = 10
             numberPicker.value = 0

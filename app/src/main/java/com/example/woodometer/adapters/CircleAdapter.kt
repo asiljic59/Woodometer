@@ -22,7 +22,7 @@ class CircleAdapter(private var krugovi : MutableList<Krug>, private val listene
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.tree_item, parent, false)
+            .inflate(R.layout.circle_item, parent, false)
         return ViewHolder(view)
     }
 
@@ -36,8 +36,9 @@ class CircleAdapter(private var krugovi : MutableList<Krug>, private val listene
 
     // Update data with DiffUtil for performance
     fun updateData(newData: MutableList<Krug>) {
+        val sortedData = newData.sortedBy { it.brKruga }
         val diffResult = DiffUtil.calculateDiff(TreeDiffCallback(krugovi, newData))
-        krugovi = newData
+        krugovi = sortedData.toMutableList()
         diffResult.dispatchUpdatesTo(this)
     }
 
@@ -50,7 +51,7 @@ class CircleAdapter(private var krugovi : MutableList<Krug>, private val listene
         override fun getNewListSize() = newList.size
 
         override fun areItemsTheSame(oldPos: Int, newPos: Int): Boolean {
-            return oldList[oldPos].brKruga == newList[newPos].brKruga
+            return oldList[oldPos].id == newList[newPos].id
         }
 
         override fun areContentsTheSame(oldPos: Int, newPos: Int): Boolean {

@@ -2,6 +2,7 @@ package com.example.woodometer.fragments
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.view.Gravity
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -11,6 +12,7 @@ import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.replace
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.transition.Visibility
 import com.example.woodometer.R
 import com.example.woodometer.Woodometer
@@ -22,9 +24,16 @@ import com.example.woodometer.model.Krug
 import com.example.woodometer.model.enumerations.KeyboardField
 import com.example.woodometer.utils.KeyboardUtils
 import com.example.woodometer.utils.KeyboardUtils.currentInputField
+import com.example.woodometer.utils.NotificationsUtils
+import com.example.woodometer.utils.PreferencesUtils
 import com.example.woodometer.viewmodels.DokumentViewModel
 import com.example.woodometer.viewmodels.KrugViewModel
 import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import com.example.woodometer.utils.NotificationsUtils.showSuccessToast
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -76,32 +85,46 @@ class AddCircleFragment : Fragment(), KeyboardListener {
         return binding.root
     }
 
+
     private fun createButtonClick(){
         binding.createButton.setOnClickListener {
-            if (isValid()) {
-                parentFragmentManager.popBackStack()
-                parentFragmentManager.beginTransaction().replace(R.id.main, CircleFragment())
-                    .addToBackStack(null).commit()
-                checkDocument()
-                dokumentVM.trenutniDokument.value?.id?.let { it1 -> krugVM.resetKrug(it1) }
-            } else {
-                Toast.makeText(
-                    context,
-                    "Svi podaci se moraju uneti! \n Podsetnik : Mora se uneti ID kruga ako je tačka permanentna!",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+                if (isValid()) {
+                    showSuccessToast(context,"Kreiran krug ${krugVM.trenutniKrug.value?.brKruga}")
+                    lifecycleScope.launch {
+                        ensureDocument {
+                            val dokumentId = dokumentVM.trenutniDokument.value?.id!!
+                            krugVM.resetKrug(dokumentId)
+                            //cuvanje trenutnog kruga!!!
+                            krugVM.trenutniKrug.value?.let { it1 ->
+                                PreferencesUtils.saveWorkingCircleToPrefs(context,
+                                    it1.id)
+                            }
+                            withContext(Dispatchers.Main) {
+                                parentFragmentManager.popBackStack()
+                                parentFragmentManager.beginTransaction()
+                                    .replace(R.id.main, CircleFragment())
+                                    .addToBackStack(null)
+                                    .commit()
+                            }
+                        }
+                    }
+
+                } else {
+                    NotificationsUtils.showErrToast(context,"Svi podaci se moraju popuniti!")
+                    NotificationsUtils.showWarningToast(context,"Podsetnik : ID kruga mora biti unet ako je krug permanentan!")
+                }
+
         }
     }
 
-    private fun checkDocument(){
-        dokumentVM.exists { exists ->
-            if (!exists) {
-                //dodajemo trenutni dokument
-                dokumentVM.add()
-                krugVM.trenutniKrug.value?.dokumentId = dokumentVM.trenutniDokument.value?.id!!
-            }
+    suspend fun ensureDocument(onReady: suspend () -> Unit) {
+        val exists = suspendCancellableCoroutine<Boolean> { cont ->
+            dokumentVM.exists { exists -> cont.resume(exists, null) }
         }
+        if (!exists) {
+            dokumentVM.add()
+        }
+        onReady()
     }
 
     private fun setupKeyboardFields(){
@@ -145,7 +168,7 @@ class AddCircleFragment : Fragment(), KeyboardListener {
     private fun isValid() : Boolean{
         val krug : Krug = krugVM.trenutniKrug.value!!
         val dokument : Dokument = dokumentVM.trenutniDokument.value!!
-        return !(krug.hasAnyDefaultVal() && dokument.hasAnyDefaultVal())
+        return !(krug.hasAnyDefaultVal() || dokument.hasAnyDefaultVal())
     }
     companion object {
         /**

@@ -8,13 +8,13 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
-import android.widget.Toast
-import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.woodometer.R
 import com.example.woodometer.interfaces.KeyboardListener
 import com.example.woodometer.model.enumerations.KeyboardField
 import com.example.woodometer.utils.GlobalUtils
+import com.example.woodometer.utils.NotificationsUtils
+import com.example.woodometer.viewmodels.DokumentViewModel
 import com.example.woodometer.viewmodels.KrugViewModel
 
 // TODO: Rename parameter arguments, choose names that match
@@ -41,6 +41,7 @@ class KeyboardFragment : Fragment() {
     private var field : KeyboardField? = null
 
     private lateinit var krugViewModel: KrugViewModel
+    private lateinit var dokumentViewModel: DokumentViewModel
 
     private lateinit var tvInput: TextView
     private var currentInput = StringBuilder()
@@ -73,6 +74,7 @@ class KeyboardFragment : Fragment() {
         // Inflate the layout for this fragment
         val view : View = inflater.inflate(R.layout.fragment_keyboard, container, false)
         krugViewModel = ViewModelProvider(requireActivity())[KrugViewModel::class.java]
+        dokumentViewModel = ViewModelProvider(requireActivity())[DokumentViewModel::class.java]
 
         tvInput = view.findViewById<TextView>(R.id.tvInput)
         var textViewText = view.findViewById<TextView>(R.id.textViewText)
@@ -163,106 +165,160 @@ class KeyboardFragment : Fragment() {
     //Provera svih atributa koji se kucaju na tastaturi
     //Uvek cemo znati koji se atribut trenutno kuca jer saljemo keyboard fragmentu!
     private fun isValid() : Boolean{
+        try {
+            currentInput.toString().toDouble()
+        } catch (e: NumberFormatException) {
+            NotificationsUtils.showErrToast(requireContext(), "Nije uneta brojevna vrednost!")
+            return false
+        }
         if (field == KeyboardField.PRECNIK){
             return isPrecnikValid()
         }else if (field == KeyboardField.AZIMUT){
             return isAzimutValid()
-        }else if (field in listOf(KeyboardField.SOCIJALNI_STATUS, KeyboardField.TEHNICKA_KLASA,KeyboardField.STEPEN_SUSENJA)){
-            return isStateValid()
         }else if(field == KeyboardField.RAZDALJINA){
             return isDistanceValid()
-        }else if(field == KeyboardField.VISINA || field == KeyboardField.DUZINA_DEBLA){
-            return isHeightValid()
-        }else if(field == KeyboardField.POLOZAJ_STABLA){
-            return isPositionValid()
+        }else if(field in listOf(KeyboardField.VISINA,KeyboardField.DUZINA_DEBLA,KeyboardField.ODELJENJE,KeyboardField.ID)){
+            return isInt()
+        }else if (field in listOf(KeyboardField.SOCIJALNI_STATUS, KeyboardField.TEHNICKA_KLASA)){
+            return isStatusValid()
+        }else if (field == KeyboardField.STEPEN_SUSENJA){
+            return isStepenSusenjaValid()
+        } else if(field == KeyboardField.POLOZAJ_STABLA){
+            return isPozicijaValid()
+        }  else if (field == KeyboardField.BR_KRUG){
+            return isBrKrugValid()
+        } else if (field == KeyboardField.NAGIB){
+            return isNagibValid()
+        } else if (field == KeyboardField.UZGOJNA_GRUPA){
+            return isUzgojnaGrupaValid()
+        } else if (field == KeyboardField.PROBNA_DOZNAKA){
+            return isProbnaDoznakaValid()
         }
 
         return true
+    }
+
+
+    private fun isInt(): Boolean {
+        try {
+            currentInput.toString().toInt()
+        }catch (e : NumberFormatException){
+            NotificationsUtils.showErrToast(requireContext(),"Polje $title mora biti ceo broj!")
+            return false
+        }
+        return true
+    }
+
+    private fun isStepenSusenjaValid(): Boolean {
+        if (!isInt()){return false}
+        if (currentInput.toString().toInt() !in 0..3) {
+            NotificationsUtils.showErrToast(requireContext(), "$title mora biti između 0 i 3!")
+            return false
+        }
+        return true
+    }
+    private fun isPozicijaValid(): Boolean {
+        if (!isInt()) { return false }
+        if (currentInput.toString().toInt() !in 0..4) {
+            NotificationsUtils.showErrToast(requireContext(), "$title mora biti između 0 i 4!")
+            return false
+        }
+        return true
+    }
+
+    private fun isStatusValid(): Boolean {
+        if (!isInt()) { return false }
+        if (currentInput.toString().toInt() !in 1..3) {
+            NotificationsUtils.showErrToast(requireContext(), "$title mora biti između 1 i 3!")
+            return false
+        }
+        return true
+    }
+
+    private fun isUzgojnaGrupaValid(): Boolean {
+        if (!isInt()) { return false }
+        if (currentInput.toString().toInt() !in 1..6) {
+            NotificationsUtils.showErrToast(requireContext(), "$title mora biti između 1 i 6!")
+            return false
+        }
+        return true
+    }
+
+    private fun isProbnaDoznakaValid(): Boolean {
+        if (!isInt()) { return false }
+        if (currentInput.toString().toInt() !in GlobalUtils.PROBNE_DOZNAKE) {
+            NotificationsUtils.showErrToast(requireContext(), "Invalidna $title!")
+            return false
+        }
+        return true
+    }
+
+
+    private fun isBrKrugValid(): Boolean {
+        isInt()
+        if (currentInput.toString()
+            .toInt() in (dokumentViewModel.krugovi.value?.map { it.brKruga } ?: listOf())){
+            NotificationsUtils.showErrToast(requireContext(),"Krug broj $currentInput već postoji u dokumentu!")
+            return false
+        }else{
+            return true
+        }
+    }
+
+    private fun isNagibValid(): Boolean {
+        return isDecimalValid() && currentInput.toString().toDouble() in 0f..45f
     }
 
     private fun isPrecnikValid(): Boolean {
-        if (!isDecimalValid()) {return false}
+        if (!isDecimalValid()) { return false }
         val number = currentInput.toString().toDouble()
-        if(number < 30 && krugViewModel.trenutnoStablo.value?.razdaljina!! > GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30 ){
-            Toast.makeText(context,"Za prečnik veći od 30cm razdaljina mora biti preko ${GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30}",Toast.LENGTH_SHORT).show()
-            return false
-        }
-        return true
-    }
-
-    private fun isPositionValid(): Boolean {
-        try{
-            val number = currentInput.toString().toInt()
-            if (number<1 || number >4){throw NumberFormatException()}
-        }catch (e: NumberFormatException){
-            Toast.makeText(context,"Pozicija stabla mora biti brojevna vrednost u opsegu 1-4!",Toast.LENGTH_SHORT).show()
-            return false
-        }
-        return true
-    }
-
-    private fun isHeightValid(): Boolean {
-        try{
-            val number = currentInput.toString().toInt()
-            currentInput = StringBuilder(currentInput.toString().toInt().toString())
-        }catch (e : NumberFormatException){
-            Toast.makeText(context,"$title mora biti brojevna vrednost izrazena u decimetrima!",Toast.LENGTH_SHORT).show()
+        if (number < 30 && krugViewModel.trenutnoStablo.value?.razdaljina!! > GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30) {
+            NotificationsUtils.showErrToast(requireContext(), "Za prečnik manji od 30cm razdaljina mora biti ispod ${GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30}")
             return false
         }
         return true
     }
 
     private fun isDistanceValid(): Boolean {
-        if (!isDecimalValid()) {return false}
+        if (!isDecimalValid()) { return false }
         val number = currentInput.toString().toDouble()
-        if(number > GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30 && krugViewModel.trenutnoStablo.value?.precnik!! < 30){
-            Toast.makeText(context,"Za prečnik veći od 30cm razdaljina mora biti preko ${GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30}",Toast.LENGTH_SHORT).show()
+        if (number > GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30 && krugViewModel.trenutnoStablo.value?.precnik!! < 30) {
+            NotificationsUtils.showErrToast(requireContext(), "Za prečnik manji od 30cm razdaljina mora biti ispod ${GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30}")
             return false
-        }else if (number >= GlobalUtils.DISTANCE_UPPER_LIMIT){
-            Toast.makeText(context,"Razdaljina ne sme biti veća od ${GlobalUtils.DISTANCE_UPPER_LIMIT}",Toast.LENGTH_SHORT).show()
+        } else if (number >= GlobalUtils.DISTANCE_UPPER_LIMIT) {
+            NotificationsUtils.showErrToast(requireContext(), "Razdaljina ne sme biti veća od ${GlobalUtils.DISTANCE_UPPER_LIMIT}")
             return false
         }
         return true
     }
 
-    private fun isStateValid(): Boolean {
-        try{
+
+    fun isAzimutValid(): Boolean {
+        try {
             val number = currentInput.toString().toInt()
-            if (number > 3 || number <0){throw NumberFormatException()}
+            if (number > 360) { throw NumberFormatException() }
             currentInput = StringBuilder(currentInput.toString().toInt().toString())
-        }catch (e : NumberFormatException){
-            Toast.makeText(context,"${title} mora biti vrednost u opsegu 0-3!",Toast.LENGTH_SHORT).show()
-            return false
-        }
-        return true
-
-    }
-
-    //Provera azimuta (da li je brojevna vrednost od 0 do 360)
-    fun isAzimutValid() : Boolean{
-        try{
-            val number = currentInput.toString().toInt()
-            if (number > 360) {throw NumberFormatException()}
-            currentInput = StringBuilder(currentInput.toString().toInt().toString())
-        }catch (e : NumberFormatException){
-            Toast.makeText(context,"Azimut mora biti broj u opsegu 0-360!",Toast.LENGTH_SHORT).show()
+        } catch (e: NumberFormatException) {
+            NotificationsUtils.showErrToast(requireContext(), "Azimut mora biti broj u opsegu 0-360!")
             return false
         }
         return true
     }
 
-    //Provera precnika (da li je brojevna vrednost)
-    fun isDecimalValid() : Boolean{
-        try{
+    fun isDecimalValid(): Boolean {
+        try {
             val number = currentInput.toString().toDouble()
-            if (hasMoreThanTwoDecimal(number)){currentInput= StringBuilder(trimToOneDecimal(number).toString())}
+            if (hasMoreThanTwoDecimal(number)) {
+                currentInput = StringBuilder(trimToOneDecimal(number).toString())
+            }
             currentInput = StringBuilder(currentInput.toString().toDouble().toString())
-        }catch (e : NumberFormatException){
-            Toast.makeText(context,"$title mora biti izražen na najviše dve decimale!",Toast.LENGTH_SHORT).show()
+        } catch (e: NumberFormatException) {
+            NotificationsUtils.showErrToast(requireContext(), "$title mora biti izražen na najviše dve decimale!")
             return false
         }
         return true
     }
+
     fun hasMoreThanTwoDecimal(number: Double): Boolean {
         val text = number.toString()
         val decimalIndex = text.indexOf('.')

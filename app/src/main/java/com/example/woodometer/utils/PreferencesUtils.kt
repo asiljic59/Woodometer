@@ -2,6 +2,7 @@ package com.example.woodometer.utils
 
 import android.content.Context
 import com.example.woodometer.model.Krug
+import java.util.UUID
 
 object PreferencesUtils {
 
@@ -22,8 +23,18 @@ object PreferencesUtils {
         sharedPrefs?.edit()?.putString(fileName, joined)?.apply()
     }
 
-    fun getCurrentDoc(){
+    fun getWorkingCircleFromPrefs(context: Context?) : String?{
+        val sharedPrefs = context?.getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
+        return sharedPrefs?.getString("radni_krug_id", "")
     }
 
-    fun saveCurrentDoc(){}
+    fun saveWorkingCircleToPrefs(context: Context?,id : UUID){
+        val sharedPrefs = context?.getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
+        sharedPrefs?.edit()?.putString("radni_krug_id",id.toString())?.apply()
+    }
+
+    fun clearWorkingCircleFromPrefs(context: Context?){
+        val sharedPrefs = context?.getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
+        sharedPrefs?.edit()?.putString("radni_krug_id","")?.apply()
+    }
 }

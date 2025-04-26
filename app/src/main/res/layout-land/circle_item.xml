@@ -3,12 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/treeMaterialCardView"
     android:layout_width="50dp"
-    android:layout_height="match_parent"
+    android:layout_height="50dp"
     android:layout_marginLeft="5dp"
     android:backgroundTint="@color/white"
-    app:cardCornerRadius="10dp"
+    app:cardCornerRadius="50dp"
     app:cardElevation="10dp"
-    app:strokeColor="@color/forest_green"
+    app:strokeColor="@color/black"
     app:strokeWidth="2dp">
 
     <ImageView
@@ -16,8 +16,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:contentDescription="forest"
-        android:scaleType="centerCrop"
-        android:src="@drawable/javor_list" />
+        android:scaleType="center" />
 
     <TextView
         android:id="@+id/stabloRbrTextView"
@@ -26,7 +25,7 @@
         android:layout_gravity="center"
         android:gravity="center"
         android:text="1"
-        android:textColor="@color/light_gray"
+        android:textColor="@color/material_dynamic_neutral0"
         android:textSize="24sp"
         android:textStyle="bold" />
 </com.google.android.material.card.MaterialCardView>

@@ -30,9 +30,14 @@ data class Stablo(
     var rbr : Int = 1,
     var krugId: UUID = UUID.randomUUID()
 ){
-    fun hasAnyDefaultVal() : Boolean{
-        return  azimut == 0 || razdaljina == 0f || precnik == 0f || duzDebla == 0 || visina == 0 ||
-                socStatus == 0 || stepSusenja == 0 || tehKlasa == 0
+    fun hasAnyDefaultVal(permanent : Boolean) : Boolean{
+        if(permanent){
+            return  azimut == 0 || razdaljina == 0f || precnik == 0f || duzDebla == 0 || visina == 0 ||
+                    socStatus == 0 || stepSusenja == 0 || tehKlasa == 0
+        }else{
+            return  precnik == 0f || socStatus == 0 || stepSusenja == 0 || tehKlasa == 0 || (rbr<=3 && (azimut == 0 || razdaljina == 0f))
+        }
+
     }
     fun hasAnyNonDefaultVal() : Boolean{
         return azimut != 0 || razdaljina != 0f || precnik != 0f || duzDebla != 0 || visina != 0 ||

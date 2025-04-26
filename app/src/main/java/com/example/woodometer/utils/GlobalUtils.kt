@@ -87,5 +87,13 @@ object GlobalUtils {
         99 to "Brekinja",
     )
 
+    val PROBNE_DOZNAKE = listOf(
+        10,
+        21,
+        30,
+        41,
+        51
+    )
+
 
 }

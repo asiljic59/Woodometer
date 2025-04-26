@@ -19,7 +19,7 @@ class KrugRepository : Repository<Krug, UUID>{
     }
 
     override suspend fun getById(id: UUID): Krug? {
-        TODO("Not yet implemented")
+       return  krugDao.getById(id)
     }
     fun getByDokument(dokumentId : UUID) : MutableList<Krug>{
         return krugDao.getByDokument(dokumentId)

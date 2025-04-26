@@ -52,7 +52,7 @@ object KeyboardUtils {
         }
         currentInputField?.setText("")
         parentFragmentManager.beginTransaction()
-            .replace(R.id.main, keyboardFragment)
+            .add(R.id.main, keyboardFragment)
             .addToBackStack(null)
             .commit()
     }
