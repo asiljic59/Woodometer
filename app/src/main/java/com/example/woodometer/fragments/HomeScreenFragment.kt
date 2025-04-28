@@ -7,7 +7,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import androidx.fragment.app.replace
+import androidx.lifecycle.ViewModelProvider
 import com.example.woodometer.R
+import com.example.woodometer.viewmodels.DokumentViewModel
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -23,6 +25,8 @@ class HomeScreenFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
+
+    private lateinit var dokumentVM :DokumentViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,12 +45,13 @@ class HomeScreenFragment : Fragment() {
         // Inflate the layout for this fragment
         val view : View = inflater.inflate(R.layout.fragment_home_screen, container, false)
 
+        dokumentVM = ViewModelProvider(requireActivity())[DokumentViewModel::class.java]
+
         val dokumentButton = view.findViewById<Button>(R.id.dokumentButton)
         val startMerenjaButton = view.findViewById<Button>(R.id.startButton)
 
         startMerenjaButton.setOnClickListener{
-            activity?.supportFragmentManager?.beginTransaction()
-                ?.replace(R.id.main,StartMeasuringFragment())?.addToBackStack(null)?.commit()
+            startMerenjaButtonClicked()
         }
 
         dokumentButton.setOnClickListener{
@@ -56,6 +61,15 @@ class HomeScreenFragment : Fragment() {
         }
 
         return view;
+    }
+
+    private fun startMerenjaButtonClicked() {
+        dokumentVM.refreshData()
+        //ne dozvoljavamo da se menjaju podaci vec postojeceg, upisanog dokumenta!!!
+        val fragment = StartMeasuringFragment().apply {
+            setIsNew(false)
+        }
+        parentFragmentManager.beginTransaction().replace(R.id.main,fragment).addToBackStack(null).commit()
     }
 
     companion object {

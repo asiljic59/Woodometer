@@ -3,6 +3,7 @@ package com.example.woodometer.activities
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.os.Message
+import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -18,6 +19,7 @@ import com.example.woodometer.interfaces.CircleListener
 import com.example.woodometer.interfaces.TreeListener
 import com.example.woodometer.utils.NotificationsUtils
 import com.example.woodometer.utils.PreferencesUtils
+import com.example.woodometer.viewmodels.DokumentViewModel
 import com.example.woodometer.viewmodels.KrugViewModel
 import java.util.UUID
 
@@ -40,6 +42,10 @@ class MainActivity : AppCompatActivity() {
         if (id != ""){
             krugVM.setRadniKrug(UUID.fromString(id))
         }
+
+        //skupljanje podataka o dokumentima pri pokretanju!
+        val dokumentVM = ViewModelProvider(this)[DokumentViewModel::class.java]
+        dokumentVM.refreshData()
 
         supportFragmentManager.beginTransaction().replace(R.id.main, HomeScreenFragment()).commit()
 
@@ -71,6 +77,42 @@ class MainActivity : AppCompatActivity() {
             .setNegativeButton("No") { dialog, id ->
                 dialog.dismiss()  // Just close the dialog if user cancels
                 listener.finishConfirmed(false,rbr)
+            }
+
+        val dialog = builder.create()
+        dialog.show()
+    }
+    fun showEditDeleteDialog(onEdit: () -> Unit, onDelete: () -> Unit) {
+        val options = arrayOf("Ažuriranje", "Brisanje")
+
+        val builder = AlertDialog.Builder(this)
+            .setTitle("Izaberite akciju")
+            .setItems(options) { dialog, which ->
+                when (which) {
+                    0 -> {
+                        onEdit()
+                    }
+                    1 -> {
+                        onDelete()
+                    }
+                }
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss() // Dismiss dialog when "Cancel" is clicked
+            }
+
+        builder.create().show()
+    }
+
+    fun showCircleDeleteConfirmationDialog(rbr : Int,onDelete: () -> Unit){
+        val builder = AlertDialog.Builder(this)
+        builder.setMessage("Da li ste sigurni da želite da obrišete krug $rbr?")
+            .setPositiveButton("Yes") { dialog, id ->
+                NotificationsUtils.showSuccessToast(this,"Stablo $rbr obrisano.")
+                onDelete()
+            }
+            .setNegativeButton("No") { dialog, id ->
+                dialog.dismiss()
             }
 
         val dialog = builder.create()

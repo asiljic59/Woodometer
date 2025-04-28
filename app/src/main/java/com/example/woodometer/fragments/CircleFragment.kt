@@ -266,4 +266,8 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
             parentFragmentManager.popBackStack()
         }
     }
+
+    override fun showEditDeleteDialog(krug: Krug) {
+        TODO("Not yet implemented")
+    }
 }

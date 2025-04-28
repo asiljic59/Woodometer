@@ -36,6 +36,6 @@ class TreeTypesAdapter(private var items: List<Pair<Int, String>>,private val li
 
     fun updateData(newData: List<Pair<Int, String>>) {
         items = newData
-        notifyDataSetChanged() // Or use DiffUtil for better performance
+        notifyDataSetChanged()
     }
 }

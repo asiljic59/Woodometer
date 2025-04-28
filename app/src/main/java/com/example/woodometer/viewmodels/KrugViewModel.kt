@@ -198,6 +198,14 @@ class KrugViewModel : ViewModel() {
         }
     }
 
+    fun deleteKrug() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                _trenutniKrug.value?.let { krugRepository.delete(it) }
+            }
+        }
+    }
+
     fun setTrenutniKrug(krug : Krug) {
         _trenutniKrug.value = krug
         _trenutnoStablo.value = Stablo(krugId = krug.id)
@@ -279,6 +287,7 @@ class KrugViewModel : ViewModel() {
     fun setDefaultStablo() {
         _trenutnoStablo.postValue(trenutniKrug.value?.id?.let { Stablo(krugId = it) })
     }
+
 
 
 }

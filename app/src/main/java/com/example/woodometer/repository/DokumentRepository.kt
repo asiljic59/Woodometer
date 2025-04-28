@@ -13,8 +13,8 @@ class DokumentRepository  {
     fun getAll(): MutableList<Dokument> {
         return dokumentDao.getAll()
     }
-    fun getEarliest() : Dokument?{
-        return dokumentDao.getEarliest()
+    fun getNewest() : Dokument?{
+        return dokumentDao.getNewest()
     }
 
     fun exists(id : UUID) : Boolean{

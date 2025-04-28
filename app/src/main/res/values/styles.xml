@@ -4,7 +4,7 @@
         <item name="android:background">@color/light_gray</item>
         <item name="itemBackground">@drawable/navbar_new</item>
     </style>
-    <style name="FullScreenTransparentDialog" parent="ThemeOverlay.MaterialComponents.Dialog">
+    <style name="FullScreenTransparentDialog" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowIsFloating">false</item>
         <item name="android:windowNoTitle">true</item>
@@ -13,4 +13,5 @@
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:fitsSystemWindows">false</item>
     </style>
+
 </resources>

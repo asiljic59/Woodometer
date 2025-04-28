@@ -19,6 +19,7 @@ import com.example.woodometer.Woodometer
 import com.example.woodometer.databinding.FragmentAddCircleBinding
 import com.example.woodometer.databinding.FragmentAddDeadTreeBinding
 import com.example.woodometer.interfaces.KeyboardListener
+import com.example.woodometer.interfaces.SilviculturalTypeListener
 import com.example.woodometer.model.Dokument
 import com.example.woodometer.model.Krug
 import com.example.woodometer.model.enumerations.KeyboardField
@@ -45,10 +46,16 @@ private const val ARG_PARAM2 = "param2"
  * Use the [AddCircleFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class AddCircleFragment : Fragment(), KeyboardListener {
+class AddCircleFragment : Fragment(), KeyboardListener,SilviculturalTypeListener {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
+
+    private var isEdit : Boolean? = null
+
+    fun setIsEdit(isEdit : Boolean){
+        this.isEdit = isEdit
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,17 +86,30 @@ class AddCircleFragment : Fragment(), KeyboardListener {
         setupKeyboardFields()
 
         binding.closeButton.setOnClickListener { parentFragmentManager.popBackStack() }
+        binding.gazdinskiTipLayout.setOnClickListener{setupSilviculturalTypeInput()}
 
+        if(isEdit == true){
+            binding.createButton.text = "SAČUVAJ"
+            setRadioButtons()
+        }
         createButtonClick()
+
 
         return binding.root
     }
-
-
+    //funkcija pomocu koje otvaramo izbor za gazdinski tip!
+    private fun setupSilviculturalTypeInput(){
+        val fragment = SilviculturalTypesFragment().apply {
+            setListener(this@AddCircleFragment)
+        }
+        parentFragmentManager.beginTransaction().add(R.id.main,fragment).addToBackStack(null).commit()
+    }
     private fun createButtonClick(){
         binding.createButton.setOnClickListener {
                 if (isValid()) {
-                    showSuccessToast(context,"Kreiran krug ${krugVM.trenutniKrug.value?.brKruga}")
+                    val message = if (isEdit == true) "Sačuvan krug ${krugVM.trenutniKrug.value?.brKruga}" else
+                                  "Kreiran krug ${krugVM.trenutniKrug.value?.brKruga}"
+                    showSuccessToast(context,message)
                     lifecycleScope.launch {
                         ensureDocument {
                             val dokumentId = dokumentVM.trenutniDokument.value?.id!!
@@ -99,12 +119,14 @@ class AddCircleFragment : Fragment(), KeyboardListener {
                                 PreferencesUtils.saveWorkingCircleToPrefs(context,
                                     it1.id)
                             }
-                            withContext(Dispatchers.Main) {
-                                parentFragmentManager.popBackStack()
-                                parentFragmentManager.beginTransaction()
-                                    .replace(R.id.main, CircleFragment())
-                                    .addToBackStack(null)
-                                    .commit()
+                            parentFragmentManager.popBackStack()
+                            if (isEdit != true){
+                                withContext(Dispatchers.Main) {
+                                    parentFragmentManager.beginTransaction()
+                                        .replace(R.id.main, CircleFragment())
+                                        .addToBackStack(null)
+                                        .commit()
+                                }
                             }
                         }
                     }
@@ -131,7 +153,6 @@ class AddCircleFragment : Fragment(), KeyboardListener {
         keyboardTextViews = hashMapOf(
             binding.nagibLayout to Triple (binding.nagibTextView,"Nagib",KeyboardField.NAGIB),
             binding.IDLayout to Triple (binding.IDTextView,"ID",KeyboardField.ID),
-            binding.gazdinskiTipLayout to Triple (binding.gazdinskiTipTextView,"Gazdinski tip",KeyboardField.GAZ_TIP),
             binding.uzgojnaGrupaLayout to Triple (binding.uzgojnaGrupaTextView,"Uzgojna grupa",KeyboardField.UZGOJNA_GRUPA),
             binding.brojKrugaLayout to Triple (binding.brojKrugaTextView,"Broj kruga",KeyboardField.BR_KRUG),
         )
@@ -139,8 +160,21 @@ class AddCircleFragment : Fragment(), KeyboardListener {
             keyboardTextViews, parentFragmentManager, this
         )
     }
-
+        // AKO JE EDIT MODE STAVLJAMO VREDNOSTI KOJE SU VEC SACUVANE
+    private fun setRadioButtons(){
+        if(krugVM.trenutniKrug.value?.permanentna!!){
+            binding.permanentButton.isChecked = true
+        }else{
+            binding.obicanButton.isChecked = true
+        }
+        if (krugVM.trenutniKrug.value?.pristupacnost!!){
+            binding.yesButton.isChecked = true
+        }else{
+            binding.noButton.isChecked = true
+        }
+    }
     private fun setRadioGroups() {
+
         //PRISTUPACNOST
         binding.pristupacnostRadioGroup.setOnCheckedChangeListener{group,checkedId ->
             when(checkedId) {
@@ -197,6 +231,10 @@ class AddCircleFragment : Fragment(), KeyboardListener {
 
     override fun onClearPressed() {
         currentInputField?.setText("")
+    }
+
+    override fun setSilviculturalType(key: Int) {
+        binding.gazdinskiTipTextView.setText(key.toString())
     }
 
 }

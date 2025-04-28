@@ -30,6 +30,10 @@ class CircleAdapter(private var krugovi : MutableList<Krug>, private val listene
         val item = krugovi[position]
         item.brKruga.toString().also { holder.rbrTextView.text = it }
         holder.card.setOnClickListener{listener.circleChanged(item)}
+        holder.card.setOnLongClickListener{
+            listener.showEditDeleteDialog(item)
+            true
+        }
     }
 
     override fun getItemCount() = krugovi.size

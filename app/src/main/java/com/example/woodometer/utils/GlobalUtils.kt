@@ -95,5 +95,36 @@ object GlobalUtils {
         51
     )
 
+    val GAZ_TIPOVI = listOf(
+        1110 to "Visoke mešovite šume OML",
+        1120 to "Izdanačke mešovite šume OML",
+        1121 to "Izdanačke mešovite šume OML - Visoke mešovite šume OML",
+        1210 to "Veštački podignute plantaže topole",
+        2310 to "Visoke mešovite šume poljskog jasena",
+        2410 to "Visoke mešovite šume lužnjaka",
+        2510 to "Visoke mešovite šume kitnjaka, sladuna i cera",
+        2620 to "Izdanačke mešovite šume hrastova",
+        2621 to "Izdanačke mešovite šume hrastova - Visoke šume hrastova i ostalih lišćara",
+        2721 to "Izdanačke mešovite šume lipa - Visoke šume lipe i ostalih lišćara",
+        2810 to "Visoke mešovite šume OTL",
+        2820 to "Izdanačke mešovite šume OTL",
+        2821 to "Izdanačke mešovite šume OTL - Visoke mešovite šume OTL",
+        2920 to "Izdanačke mešovite šume bagrema",
+        21010 to "Visoke mešovite šume javora i jasena",
+        21110 to "Visoke mešovite šume bukve",
+        21120 to "Izdanačke mešovite šume bukve",
+        21121 to "Izdanačke mešovite šume bukve - Visoke šume bukve i ostalih lišćara",
+        31210 to "Visoke mešovite šume borova",
+        31211 to "Visoke mešovite šume borova - Visoke šume lišćara i četinara",
+        31510 to "Visoke mešovite šume smrče",
+        31511 to "Visoke mešovite šume smrče - Visoke šume četinara i lišćara",
+        31610 to "Izdanačke mešovite šume bukve - Visoke šume bukve i ostalih lišćara",
+        41310 to "Visoke šume bukve i jele",
+        41410 to "Visoke šume bukve, jele i smrče",
+        51730 to "Šibljaci, šikare i žbunasta vegetacija",
+        51731 to "Šibljaci, šikare i žbunasta vegetacija za rekonstrukciju",
+
+    )
+
 
 }

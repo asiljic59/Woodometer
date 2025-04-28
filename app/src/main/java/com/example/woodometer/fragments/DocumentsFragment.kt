@@ -10,6 +10,7 @@ import android.widget.ImageButton
 import androidx.fragment.app.replace
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.woodometer.R
@@ -18,6 +19,7 @@ import com.example.woodometer.interfaces.DocumentsListener
 import com.example.woodometer.model.Dokument
 import com.example.woodometer.utils.PreferencesUtils
 import com.example.woodometer.viewmodels.DokumentViewModel
+import kotlinx.coroutines.launch
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -90,7 +92,15 @@ class DocumentsFragment : Fragment(), DocumentsListener {
     }
 
     override fun docClicked(dokument: Dokument) {
-        dokumentiViewModel.setTrenuntniDokument(dokument)
-        parentFragmentManager.beginTransaction().replace(R.id.main,StartMeasuringFragment()).addToBackStack(null).commit()
+        if (dokument.id != dokumentiViewModel.trenutniDokument.value?.id!!){
+            dokumentiViewModel.setTrenuntniDokument(dokument)
+            dokumentiViewModel.getKrugovi()
+        }
+        //ne dozvoljavamo da se menjaju podaci vec postojeceg, upisanog dokumenta!!!
+
+        val fragment = StartMeasuringFragment().apply {
+            setIsNew(false)
+        }
+        parentFragmentManager.beginTransaction().replace(R.id.main,fragment).addToBackStack(null).commit()
     }
 }

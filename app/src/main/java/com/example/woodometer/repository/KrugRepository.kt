@@ -15,7 +15,7 @@ class KrugRepository : Repository<Krug, UUID>{
     }
 
     override suspend fun delete(item: Krug) {
-        TODO("Not yet implemented")
+        krugDao.delete(item)
     }
 
     override suspend fun getById(id: UUID): Krug? {

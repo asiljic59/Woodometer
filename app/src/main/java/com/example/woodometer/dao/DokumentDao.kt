@@ -9,13 +9,13 @@ import java.util.UUID
 @Dao
 interface DokumentDao {
 
-    @Query("SELECT * FROM dokument WHERE timestamp = (SELECT MIN(timestamp) FROM dokument)")
-    fun getEarliest() : Dokument?
+    @Query("SELECT * FROM dokument WHERE timestamp = (SELECT MAX(timestamp) FROM dokument)")
+    fun getNewest() : Dokument?
 
     @Query("SELECT * FROM Dokument")
     fun getAll() : MutableList<Dokument>
 
-    @Query("SELECT EXISTS(SELECT 1 FROM Dokument WHERE id = :id)")
+    @Query("SELECT EXISTS(SELECT 1 FROM Dokument WHERE id = :id )")
     fun exists(id : UUID) : Boolean
 
     @Insert

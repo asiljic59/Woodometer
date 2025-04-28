@@ -40,25 +40,28 @@ class DokumentViewModel : ViewModel() {
         _trenutniDokument.postValue(dokument)
     }
 
-    init {
-        getEarliest()
+    fun refreshData() {
+        getNewest()
         getAll()
         getKrugovi()
     }
 
     fun getKrugovi() {
         viewModelScope.launch {
-            withContext(Dispatchers.IO){
-                val krugovi = _trenutniDokument.value?.let { krugRepository.getByDokument(it.id) }
+            withContext(Dispatchers.IO) {
+                val krugovi = _trenutniDokument.value?.let {
+                    krugRepository.getByDokument(it.id).sortedBy { it.brKruga }.toMutableList()
+                }
                 _krugovi.postValue(krugovi)
             }
         }
+
     }
 
-    fun getEarliest(){
+    fun getNewest(){
         viewModelScope.launch {
             val dokument = withContext(Dispatchers.IO) {
-                dokumentRepository.getEarliest()
+                dokumentRepository.getNewest()
             }
             _trenutniDokument.postValue(dokument ?: Dokument())
         }
@@ -76,7 +79,7 @@ class DokumentViewModel : ViewModel() {
     fun exists(onResult : (Boolean) -> Unit) {
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
-                trenutniDokument.value?.id?.let { dokumentRepository.exists(it) } ?: false
+                dokumentRepository.exists(trenutniDokument.value?.id!!)
             }
             onResult(result)
         }

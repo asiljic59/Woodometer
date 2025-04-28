@@ -72,6 +72,12 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
     private lateinit var dokumentVM : DokumentViewModel
     private lateinit var krugVM : KrugViewModel
 
+    private var isNew : Boolean? = null
+
+    fun setIsNew(isNew: Boolean){
+        this.isNew = isNew
+    }
+
     //polja koja otvaraju tastaturu
     private lateinit var keyboardTextViews : HashMap<ConstraintLayout,Triple<TextInputEditText,String,KeyboardField>>
 
@@ -107,8 +113,10 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
         super.onViewCreated(view, savedInstanceState)
         setupCirclesRecyclerView()
         lifecycleScope.launch {
+            dokumentVM.krugovi.observe(viewLifecycleOwner) {krugovi ->
+                adapter.updateData(krugovi)
+            }
             dokumentVM.getKrugovi()
-
 
             val krugButton = view.findViewById<Button>(R.id.krugoviButton)
 
@@ -124,14 +132,12 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
             binding.noviDokumentButton.setOnClickListener{
                 dokumentVM.setTrenuntniDokument(Dokument())
                 dokumentVM.setTrenutniKrugovi(mutableListOf())
+                setupInputListeners()
             }
 
-            //OVA 3 IZNAD IZLAZE OPCIJE
-            keyboardTextViews = hashMapOf(
-                view.findViewById<ConstraintLayout>(R.id.odeljenjeLayout) to Triple(view.findViewById(R.id.odeljenjeTextView),"ODELJENJE",KeyboardField.ODELJENJE)
-            )
-            KeyboardUtils.setupInputKeyboardClickListeners(keyboardTextViews,parentFragmentManager,this@StartMeasuringFragment)
-            setupOptionsClickListener(view)
+            if (isNew == true){
+                setupInputListeners()
+            }
             //stavljanje imena dokumenta itd itd
             setupMetaData()
         }
@@ -156,6 +162,20 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
                 }
             }
     }
+    //funkcija kojom omogucavamo korisniku da unosi podatke o dokumentu , AKO JE DOKUMENT NOV (KLIKNUTO DUGME NOVI DOKUMENT)
+    private fun setupInputListeners(){
+        keyboardTextViews = hashMapOf(
+            binding.odeljenjeLayout to Triple(binding.odeljenjeTextView,"ODELJENJE",KeyboardField.ODELJENJE)
+        )
+        optionsTextViews = hashMapOf(
+            binding.gazdinskaLayout to Triple(binding.gazdinskaJedTextView, "gazdinske_jed", ListOptionsField.GAZDINSKA_JED),
+            binding.odsekLayout to Triple(binding.odsekTextView, "odseci", ListOptionsField.ODSEK),
+            binding.korisnikLayout to Triple(binding.korisnikTextView, "korisnici", ListOptionsField.KORISNIK)
+        )
+        //OVA 3 IZNAD IZLAZE OPCIJE
+        KeyboardUtils.setupInputKeyboardClickListeners(keyboardTextViews,parentFragmentManager,this@StartMeasuringFragment)
+        setupOptionsClickListener()
+    }
 
     private fun addCircleClicked(){
         if (krugVM.radniKrug.value == null){
@@ -169,18 +189,15 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
     //Krugovi recycler view
     private fun setupCirclesRecyclerView(){
         recyclerView = binding.krugoviRecyclerView
-        adapter = CircleAdapter(mutableListOf(),this@StartMeasuringFragment)
+        adapter = CircleAdapter(mutableListOf(),this)
         recyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         recyclerView.adapter = adapter
-        dokumentVM.krugovi.observe(viewLifecycleOwner) {krugovi ->
-            adapter.updateData(krugovi)
-        }
     }
     //meta data o dokumentu
     private fun setupMetaData(){
         dokumentVM.trenutniDokument.observe(viewLifecycleOwner){dokument ->
-            "${dokument.gazJedinica}${dokument.brOdeljenja}_${dokument.odsek}_${dokument.korisnik}".also { binding.dokumentNameTextView.text = it }
-            binding.dateTimeTextView.text = formatTimestamp(dokument.timestamp)
+                "${dokument.gazJedinica}${dokument.brOdeljenja}_${dokument.odsek}_${dokument.korisnik}".also { binding.dokumentTextView.text = it }
+                binding.dateTimeTextView.text = formatTimestamp(dokument.timestamp)
         }
     }
 
@@ -192,13 +209,7 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
     }
 
 
-    private fun setupOptionsClickListener(view: View){
-        optionsTextViews = hashMapOf(
-            view.findViewById<ConstraintLayout>(R.id.gazdinskaLayout) to Triple(view.findViewById(R.id.gazdinskaJedTextView),"gazdinske_jed",ListOptionsField.GAZDINSKA_JED),
-            view.findViewById<ConstraintLayout>(R.id.odsekLayout) to Triple(view.findViewById(R.id.odsekTextView),"odseci",ListOptionsField.ODSEK),
-            view.findViewById<ConstraintLayout>(R.id.korisnikLayout) to Triple(view.findViewById(R.id.korisnikTextView),"korisnici",ListOptionsField.KORISNIK)
-        )
-
+    private fun setupOptionsClickListener(){
         optionsTextViews.keys.forEach{ layout ->
             layout.setOnClickListener(){
                 currentOptionField = optionsTextViews[layout]?.first!!
@@ -257,4 +268,34 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
             parentFragmentManager.popBackStack()
         }
     }
+
+    override fun showEditDeleteDialog(krug: Krug) {
+        (activity as MainActivity).showEditDeleteDialog(onEdit = {editClicked(krug)}, onDelete = { deleteClicked(krug) })
+    }
+
+    private fun editClicked(krug: Krug){
+        krugVM.setTrenutniKrug(krug)
+        val fragment = AddCircleFragment().apply {
+            setIsEdit(true)
+        }
+        parentFragmentManager.beginTransaction().add(R.id.main,fragment).addToBackStack(null).commit()
+    }
+
+
+    //BRISANJE KRUGA, KAO I BIRSANJE RADNOG KRUGA AKO JE IZBRISANI KRUG RADNI KRUG U TOM MOMENTU
+    private fun deleteClicked(krug: Krug){
+        (activity as MainActivity).showCircleDeleteConfirmationDialog(krug.brKruga,
+            onDelete = {
+                krugVM.setTrenutniKrug(krug)
+                if (krugVM.trenutniKrug.value?.id == krugVM.radniKrug.value?.id){
+                    PreferencesUtils.clearWorkingCircleFromPrefs(context)
+                    krugVM.setDefaultRadniKrug()
+                }
+                val krugovi = dokumentVM.krugovi.value
+                krugovi?.remove(krug)
+                dokumentVM.setTrenutniKrugovi(krugovi!!)
+                krugVM.deleteKrug()
+            })
+    }
+
 }

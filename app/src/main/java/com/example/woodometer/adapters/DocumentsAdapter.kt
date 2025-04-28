@@ -52,8 +52,9 @@ class DocumentsAdapter(private var docs : List<Dokument>,private val documentsLi
         override fun getItemCount() = docs.size
 
     fun updateData(newData: List<Dokument>) {
-        val diffResult = DiffUtil.calculateDiff(TreeDiffCallback(docs, newData))
-        docs = newData
+        val sortedData = newData.sortedByDescending { it.timestamp }
+        val diffResult = DiffUtil.calculateDiff(TreeDiffCallback(docs, sortedData))
+        docs = sortedData
         diffResult.dispatchUpdatesTo(this)
     }
     class TreeDiffCallback(
