@@ -11,6 +11,7 @@ import com.example.woodometer.adapters.DeadTreesAdapter.TreeDiffCallback
 import com.example.woodometer.interfaces.DocumentsListener
 import com.example.woodometer.model.Dokument
 import com.example.woodometer.model.MrtvoStablo
+import com.example.woodometer.utils.GlobalUtils
 import com.google.android.material.card.MaterialCardView
 import java.time.Instant
 import java.time.ZoneId
@@ -40,7 +41,7 @@ class DocumentsAdapter(private var docs : List<Dokument>,private val documentsLi
 
         }
         fun formatText(dokument: Dokument) : String{
-            return "${dokument.gazJedinica}${dokument.brOdeljenja}_${dokument.odsek}_${dokument.korisnik}"
+            return "${dokument.gazJedinica}_${dokument.brOdeljenja}${dokument.odsek}"
         }
         fun formatTimestamp(timestamp: Long): String {
             val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")

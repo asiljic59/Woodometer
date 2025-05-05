@@ -1,8 +1,19 @@
 package com.example.woodometer.utils
 
+import com.example.woodometer.model.Biodiverzitet
+import com.example.woodometer.model.Dokument
+import java.sql.Timestamp
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
 object GlobalUtils {
     const val DISTANCE_UPPER_LIMIT = 12.62
     const val DISTANCE_UPPER_LIMIT_UNDER_30 = 7.98
+
+    const val NAC_ZAPRE = 8
+    const val NAC_PRIR = 6
+
     val  VRSTE_DRVECA = listOf(
         11 to "Bela vrba",      // 11 → Bela vrba
         12 to "Bademasta vrba", // 12 → Bademasta vrba
@@ -126,5 +137,24 @@ object GlobalUtils {
 
     )
 
+    val BIODIVERZITET_VREDNOSTI = listOf(
+        Biodiverzitet::dubeca to "Dubeća odumiruća stara stabla",
+        Biodiverzitet::osteceniVrh to "Stara stabla sa oštećenim/polomljenim vrhom",
+        Biodiverzitet::ostecenaKora to "Stara stabla sa oštećenom ili ispucalom korom",
+        Biodiverzitet::gnezda to "Stabla sa gnezdima",
+        Biodiverzitet::supljine to "Stabla sa šupljinama,pukotinama ili otvorima (D > 30cm)",
+        Biodiverzitet::lisajevi to "Značajna zastupljenost lišajeva na deblu (>30%)",
+        Biodiverzitet::mahovine to "Značajna zastupljenost mahovine na deblu (>40%)",
+        Biodiverzitet::gljive to "Prisustvo gljiva na deblu",
+        Biodiverzitet::izuzetnaDimenzija to "Stabla izuzetnih dimenzija",
+        Biodiverzitet::velikaUsalmljena to "Velika usamljena, suncu izložena stabla"
+    )
+    fun formatDateDocument(timestamp: Long) : String{
+        val formatter = DateTimeFormatter.ofPattern("ddMMyyyy")
+
+        return Instant.ofEpochMilli(timestamp)
+            .atZone(ZoneId.systemDefault())
+            .format(formatter)
+    }
 
 }

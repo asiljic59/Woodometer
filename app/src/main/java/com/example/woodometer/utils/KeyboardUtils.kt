@@ -50,7 +50,6 @@ object KeyboardUtils {
             keyboardTextViews[layout]?.let { setTitle(it.second) }
             keyboardTextViews[layout]?.third?.let { setField(it) }
         }
-        currentInputField?.setText("")
         parentFragmentManager.beginTransaction()
             .add(R.id.main, keyboardFragment)
             .addToBackStack(null)

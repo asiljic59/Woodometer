@@ -15,8 +15,8 @@ import com.google.android.material.card.MaterialCardView
 import java.util.UUID
 
 class TreesAdapter(var stabla : MutableList<Stablo>,val listener : TreeListener) : RecyclerView.Adapter<TreesAdapter.ViewHolder>(){
-    var selectedStabloRbr: Int = 1
-    var oldStabloRbr : Int = 0;
+    var selectedStabloPosition: Int = 0
+    var oldStabloPosition : Int = 0;
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val rbrTextView = view.findViewById<TextView>(R.id.stabloRbrTextView)
         val card = view.findViewById<MaterialCardView>(R.id.treeMaterialCardView)
@@ -33,11 +33,11 @@ class TreesAdapter(var stabla : MutableList<Stablo>,val listener : TreeListener)
         item.rbr.toString().also { holder.rbrTextView.text = it }
         holder.card.setOnClickListener{listener.changeTree(item)}
 
-        if (item.rbr == selectedStabloRbr) {
+        if (position == selectedStabloPosition) {
             holder.card.strokeColor = holder.card.context.getColor(R.color.olive) // your defined highlight color
             holder.card.strokeWidth = 5
             holder.card.elevation = 10F
-        }else if (item.rbr == oldStabloRbr){
+        }else{
             holder.card.strokeColor = holder.card.context.getColor(R.color.white)
             holder.card.strokeWidth = 5
         }
@@ -61,10 +61,11 @@ class TreesAdapter(var stabla : MutableList<Stablo>,val listener : TreeListener)
         diffResult.dispatchUpdatesTo(this)
     }
 
-    fun updateSelectedStablo(oldRbr : Int,newRbr : Int) {
-        selectedStabloRbr = newRbr
-        notifyItemChanged(newRbr-1)
-        notifyItemChanged(oldRbr-1)
+    fun updateSelectedStablo(newPosition : Int) {
+        oldStabloPosition = selectedStabloPosition
+        selectedStabloPosition = newPosition
+        notifyItemChanged(oldStabloPosition)
+        notifyItemChanged(newPosition)
     }
 
     class TreeDiffCallback(

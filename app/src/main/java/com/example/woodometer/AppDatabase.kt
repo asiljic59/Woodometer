@@ -13,7 +13,7 @@ import com.example.woodometer.dao.StabloDao
 import com.example.woodometer.model.Biodiverzitet
 import com.example.woodometer.model.MrtvoStablo
 
-@Database(entities = [Dokument::class,Krug::class,Stablo::class,Biodiverzitet::class,MrtvoStablo::class], version = 5)
+@Database(entities = [Dokument::class,Krug::class,Stablo::class,Biodiverzitet::class,MrtvoStablo::class], version = 6)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun dokumentDao(): DokumentDao
     abstract fun krugDao() : KrugDao

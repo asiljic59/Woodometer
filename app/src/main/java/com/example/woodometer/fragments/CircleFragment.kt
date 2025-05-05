@@ -181,6 +181,7 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
 
     private fun addTreeButtonClicked(){
         krugViewModel.resetStablo()
+        krugViewModel.stablaKruga.value?.let { adapter.updateSelectedStablo(it.lastIndex + 1) }
     }
 
     private fun saveTreeButtonClicked(){
@@ -228,7 +229,7 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
 
     override fun changeTree(stablo : Stablo) {
         if (stablo.id == krugViewModel.trenutnoStablo.value?.id){return}
-        adapter.updateSelectedStablo(krugViewModel.trenutnoStablo.value?.rbr!!,stablo.rbr)
+        adapter.updateSelectedStablo(krugViewModel.getStabloIndex(stablo))
         krugViewModel.setTrenutnoStablo(stablo)
         binding.brojStablaTextView.text = krugViewModel.trenutnoStablo.value?.rbr.toString()
     }
@@ -254,7 +255,12 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
     }
 
     override fun finishConfirmed(finish: Boolean, rbr: Int) {
+        krugViewModel.setTrenutniKrug(krugViewModel.radniKrug.value!!)
         val isValid : Pair<Boolean,List<Int>> = krugViewModel.isKrugValid()
+        if (krugViewModel.stablaKruga.value?.isEmpty() == true){
+            showErrToast(context,"Radni krug nema nijedno stablo!")
+            return
+        }
         if (!isValid.first){
             showErrToast(context,"Stabla broj ${isValid.second.joinToString(",") } su invalidna! ")
             return

@@ -100,5 +100,9 @@ class DokumentViewModel : ViewModel() {
         _krugovi.postValue(krugovi)
     }
 
+    fun existsKrug(radniKrug: Krug?): Boolean {
+        return krugovi.value?.any{it.id == radniKrug?.id}!!
+    }
+
 
 }

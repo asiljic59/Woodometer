@@ -1,9 +1,18 @@
 package com.example.woodometer.model
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.UUID
-
-@Entity
+@Entity(
+    foreignKeys = [ForeignKey(
+        entity = Krug::class,
+        parentColumns = ["id"],
+        childColumns = ["krugId"],
+        onDelete = ForeignKey.CASCADE
+    )],
+    indices = [Index("krugId")]
+)
 data class Biodiverzitet(var krugId: UUID = UUID.randomUUID()){
     @PrimaryKey
     var id : UUID = UUID.randomUUID()

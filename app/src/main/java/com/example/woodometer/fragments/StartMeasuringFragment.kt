@@ -1,18 +1,17 @@
 package com.example.woodometer.fragments
 
-import android.content.Context
-import android.content.SharedPreferences.Editor
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
-import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.fragment.app.replace
+import androidx.core.content.FileProvider
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,8 +19,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.woodometer.R
 import com.example.woodometer.activities.MainActivity
 import com.example.woodometer.adapters.CircleAdapter
-import com.example.woodometer.adapters.TreesAdapter
-import com.example.woodometer.databinding.FragmentCircleBinding
 import com.example.woodometer.databinding.FragmentStartMeasuringBinding
 import com.example.woodometer.interfaces.AddOptionListener
 import com.example.woodometer.interfaces.CircleListener
@@ -30,19 +27,26 @@ import com.example.woodometer.model.Dokument
 import com.example.woodometer.model.Krug
 import com.example.woodometer.model.enumerations.KeyboardField
 import com.example.woodometer.model.enumerations.ListOptionsField
+import com.example.woodometer.utils.ExportDataUtils
+import com.example.woodometer.utils.ExportJsonUtils
 import com.example.woodometer.utils.KeyboardUtils
 import com.example.woodometer.utils.NotificationsUtils.showErrToast
 import com.example.woodometer.utils.NotificationsUtils.showSuccessToast
+import com.example.woodometer.utils.NotificationsUtils.showWarningToast
 import com.example.woodometer.utils.PreferencesUtils
 import com.example.woodometer.utils.PreferencesUtils.getListFromPrefs
 import com.example.woodometer.viewmodels.DokumentViewModel
 import com.example.woodometer.viewmodels.KrugViewModel
 import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.UUID
+
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -134,6 +138,10 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
                 dokumentVM.setTrenutniKrugovi(mutableListOf())
                 setupInputListeners()
             }
+            if (isNew == true) {binding.izvozTxtButton.visibility = View.GONE}
+            binding.izvozTxtButton.setOnClickListener(){
+                izvozTxtClicked()
+            }
 
             if (isNew == true){
                 setupInputListeners()
@@ -162,6 +170,50 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
                 }
             }
     }
+    private fun izvozTxtClicked(){
+        if (dokumentVM.krugovi.value?.isEmpty() == true){
+            showWarningToast(context,"Nemate nijedan krug u trenutnom dokumentu")
+            return
+        }else if (dokumentVM.existsKrug(krugVM.radniKrug.value)){
+            showErrToast(context, "Radni krug broj ${krugVM.radniKrug.value?.brKruga} se nalazi u ovom dokumentu!")
+            showWarningToast(context, "Svi krugovi moraju biti završeni pre izvoza!")
+            return
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            val file = ExportDataUtils.exportDocument(dokumentVM.trenutniDokument.value!!,dokumentVM.krugovi.value!!,activity)
+            val jsonFile = ExportJsonUtils.exportToJson(dokumentVM.trenutniDokument.value!!,dokumentVM.krugovi.value!!,activity)
+            withContext(Dispatchers.Main) {
+                val fileUri = context?.let {
+                    FileProvider.getUriForFile(
+                        it,
+                        "${activity?.packageName}.provider",
+                        file
+                    )
+                }
+
+                val fileJsonUri = context?.let {
+                    FileProvider.getUriForFile(
+                        it,
+                        "${activity?.packageName}.provider",
+                        jsonFile
+                    )
+                }
+
+                val uris = ArrayList<Uri>()
+                fileUri?.let { uris.add(it) }
+                fileJsonUri?.let { uris.add(it) }
+
+                val shareIntent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                    type = "*/*"
+                    putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                startActivity(Intent.createChooser(shareIntent, "Send file to..."))
+            }
+        }
+
+    }
+
     //funkcija kojom omogucavamo korisniku da unosi podatke o dokumentu , AKO JE DOKUMENT NOV (KLIKNUTO DUGME NOVI DOKUMENT)
     private fun setupInputListeners(){
         keyboardTextViews = hashMapOf(
@@ -256,6 +308,7 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
     }
 
     override fun finishConfirmed(finish: Boolean, rbr: Int) {
+        krugVM.setTrenutniKrug(krugVM.radniKrug.value!!)
         val isValid : Pair<Boolean,List<Int>> = krugVM.isKrugValid()
         if (!isValid.first){
             showErrToast(context,"Stabla broj ${isValid.second.joinToString(",") } su invalidna! ")

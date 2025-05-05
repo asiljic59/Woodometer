@@ -266,7 +266,12 @@ class KeyboardFragment : Fragment() {
     }
 
     private fun isNagibValid(): Boolean {
-        return isDecimalValid() && currentInput.toString().toDouble() in 0f..45f
+        if (!isDecimalValid()) { return false }
+        if (currentInput.toString().toDouble() !in 0f..45f) {
+            NotificationsUtils.showErrToast(requireContext(), "$title mora biti između 1 i 45!")
+            return false
+        }
+        return true
     }
 
     private fun isPrecnikValid(): Boolean {

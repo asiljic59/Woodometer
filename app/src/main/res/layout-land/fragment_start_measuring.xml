@@ -204,6 +204,7 @@
                         android:id="@+id/krugoviRecyclerView"
                         android:layout_width="0dp"
                         android:layout_height="50dp"
+                        android:background="@color/white"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent" />
@@ -285,23 +286,17 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent">
 
-                    <TextView
-                        android:id="@+id/xlsTextView"
+                    <Button
+                        android:id="@+id/izvozTxtButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="15dp"
-                        android:layout_marginRight="15dp"
-                        android:text="XLS"
-                        android:textColor="@color/black90"
-                        android:textSize="18sp" />
-
-                    <TextView
-                        android:id="@+id/txtTextView"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="TXT"
-                        android:textColor="@color/black90"
-                        android:textSize="18sp" />
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp"
+                        android:layout_weight="1"
+                        android:backgroundTint="#8B5A2B"
+                        android:text="Izvoz u TXT"
+                        android:textColor="@color/light_gray"
+                        app:cornerRadius="0dp" />
 
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
@@ -324,8 +319,8 @@
                 android:layout_marginTop="5dp"
                 android:background="@android:color/transparent"
                 android:scaleType="center"
-                android:scaleX="1.5"
-                android:scaleY="1.5"
+                android:scaleX="0.8"
+                android:scaleY="0.8"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"

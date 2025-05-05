@@ -267,10 +267,11 @@ class KrugViewModel : ViewModel() {
         }
     }
 
-    fun isKrugValid() : Pair<Boolean,List<Int>> {
+    fun isKrugValid(): Pair<Boolean, List<Int>> {
+        setStablaKruga()
         val invalidStabla = areStablaValid()
         val isValid = invalidStabla.isEmpty()
-        return Pair(isValid,invalidStabla)
+        return Pair(isValid, invalidStabla)
     }
     //provera da li su SVA stabla kruga validna!
     fun areStablaValid() : List<Int>{
@@ -288,6 +289,9 @@ class KrugViewModel : ViewModel() {
         _trenutnoStablo.postValue(trenutniKrug.value?.id?.let { Stablo(krugId = it) })
     }
 
+    fun getStabloIndex(stablo: Stablo): Int {
+        return stablaKruga.value?.indexOf(stablo)!!
+    }
 
 
 }

@@ -4,7 +4,7 @@
     android:id="@+id/treeMaterialCardView"
     android:layout_width="50dp"
     android:layout_height="match_parent"
-    android:layout_marginLeft="5dp"
+    android:layout_marginLeft="7dp"
     android:backgroundTint="@color/white"
     app:cardCornerRadius="10dp"
     app:cardElevation="10dp"
@@ -26,7 +26,7 @@
         android:layout_gravity="center"
         android:gravity="center"
         android:text="1"
-        android:textColor="@color/light_gray"
+        android:textColor="@color/design_default_color_on_secondary"
         android:textSize="24sp"
         android:textStyle="bold" />
 </com.google.android.material.card.MaterialCardView>

@@ -23,6 +23,7 @@ import com.example.woodometer.model.enumerations.KeyboardField
 import com.example.woodometer.utils.GlobalUtils
 import com.example.woodometer.utils.KeyboardUtils
 import com.example.woodometer.utils.KeyboardUtils.currentInputField
+import com.example.woodometer.utils.NotificationsUtils
 import com.example.woodometer.viewmodels.KrugViewModel
 import com.google.android.material.textfield.TextInputEditText
 
@@ -93,7 +94,7 @@ class AddDeadTreeFragment : Fragment(),KeyboardListener,TreeTypeListener {
                 else{krugVM.editMrtvoStablo()}
                 parentFragmentManager.popBackStack()
             } else {
-                Toast.makeText(context, "Morate uneti sve parametre mrtvog stabla!", Toast.LENGTH_SHORT).show()
+                NotificationsUtils.showErrToast(context,"Morate uneti sve parametre mrtvog stabla!")
             }
         }
         binding.closeButton2.setOnClickListener{
@@ -146,7 +147,7 @@ class AddDeadTreeFragment : Fragment(),KeyboardListener,TreeTypeListener {
 
     fun isDeadTreeValid() : Boolean{
         val mrtvoStablo = krugVM.mrtvoStablo.value
-        return (mrtvoStablo?.precnik != 0f || mrtvoStablo.visina != 0 || mrtvoStablo.vrsta != 0 || mrtvoStablo.polozaj != 0 )
+        return !mrtvoStablo?.hasAnyDefaultVal()!!
     }
 
     override fun onEnterPressed(input: String) {
