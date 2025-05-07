@@ -20,4 +20,7 @@ class DokumentRepository  {
     fun exists(id : UUID) : Boolean{
         return dokumentDao.exists(id)
     }
+    fun isEmpty() : Boolean{
+        return dokumentDao.isEmpty()
+    }
 }

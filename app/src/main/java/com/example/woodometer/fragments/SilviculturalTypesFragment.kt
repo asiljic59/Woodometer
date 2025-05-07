@@ -111,8 +111,8 @@ class SilviculturalTypesFragment : Fragment(),SilviculturalTypeListener {
     }
 
     private fun fetchSilviculturalTypes() {
-        if (currentInput.toString().length >= 2){
-            val value : String = currentInput.toString().take(2)
+        if (currentInput.toString().length >= 4){
+            val value : String = currentInput.toString().take(currentInput.length)
             val match = GAZ_TIPOVI.find { it.first == value.toInt() }
             if (match != null) {
                 adapter.updateData(listOf(match))

@@ -9,7 +9,11 @@ import android.widget.Button
 import androidx.fragment.app.replace
 import androidx.lifecycle.ViewModelProvider
 import com.example.woodometer.R
+import com.example.woodometer.utils.PreferencesUtils
 import com.example.woodometer.viewmodels.DokumentViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -64,12 +68,24 @@ class HomeScreenFragment : Fragment() {
     }
 
     private fun startMerenjaButtonClicked() {
-        dokumentVM.refreshData()
-        //ne dozvoljavamo da se menjaju podaci vec postojeceg, upisanog dokumenta!!!
-        val fragment = StartMeasuringFragment().apply {
-            setIsNew(false)
+        CoroutineScope(Dispatchers.Main).launch {
+            // Refresh the data
+            dokumentVM.refreshData()
+
+            // Check if the table is empty
+            val isNew = dokumentVM.isEmpty()
+
+            // Create the fragment
+            val fragment = StartMeasuringFragment().apply {
+                setIsNew(isNew)  // Pass the result to the fragment
+            }
+
+            // Replace the fragment
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.main, fragment)
+                .addToBackStack(null)
+                .commit()
         }
-        parentFragmentManager.beginTransaction().replace(R.id.main,fragment).addToBackStack(null).commit()
     }
 
     companion object {

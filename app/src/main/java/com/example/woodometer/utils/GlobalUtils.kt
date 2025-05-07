@@ -99,11 +99,11 @@ object GlobalUtils {
     )
 
     val PROBNE_DOZNAKE = listOf(
-        10,
-        21,
-        30,
-        41,
-        51
+        10 to "Potencijalno stablo budućnosti",
+        21 to "Konkurent stablima budućnosti",
+        30 to "Indiferentno stablo, bez uticaja",
+        41 to "Hitno za seču, vrlo lošeg kvaliteta",
+        51 to "Zrelo, seča obnavljanja"
     )
 
     val GAZ_TIPOVI = listOf(
@@ -148,6 +148,37 @@ object GlobalUtils {
         Biodiverzitet::gljive to "Prisustvo gljiva na deblu",
         Biodiverzitet::izuzetnaDimenzija to "Stabla izuzetnih dimenzija",
         Biodiverzitet::velikaUsalmljena to "Velika usamljena, suncu izložena stabla"
+    )
+
+    val UZGOJNE_GRUPE = listOf(
+        1 to "Podmladak",
+        2 to "Rani mladik",
+        3 to "Kasni mladik",
+        4 to "Srednjedobna sastojina",
+        5 to "Dozrevajuća sastojina",
+        6 to "Zrela-Regeneracija"
+    )
+    val STEPENI_SUSENJA = listOf(
+        0 to "Zdravo stablo bez pojave sušenja",
+        1 to "Polusuvo stablo",
+        2 to "Suvo stablo"
+    )
+    val SOCIJALNI_STATUSI = listOf(
+        1 to "Predominantna i dominantna",
+        2 to "Kodominantna",
+        3 to "Potištena uključujići i suva stabla"
+    )
+    val TEHNICKE_KLASE = listOf(
+        1 to "Stablo sa pravilno razvijenom krunom bez oštećenja i preloma sa deblom bez oštećenja",
+        2 to "Stablo sa pravilno razvijenom krunom bez oštećenja i preloma sa deblom sa manjim oštećenjem - oštećena i malo kriva",
+        3 to "Drvo sa vidno oštećenim i/ili krivim deblom (Drvo lošeg kvaliteta)"
+    )
+
+    val POLOZAJ_STABLA = listOf(
+        1 to "Stablo u dubećem položaju",
+        2 to "Stablo u ležećem položaju",
+        3 to "Stablo je dubeće i prelomljeno",
+        4 to "Deo ležećeg stabla"
     )
     fun formatDateDocument(timestamp: Long) : String{
         val formatter = DateTimeFormatter.ofPattern("ddMMyyyy")

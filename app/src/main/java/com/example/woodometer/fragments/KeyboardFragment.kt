@@ -1,21 +1,32 @@
 package com.example.woodometer.fragments
 
 import android.os.Bundle
+import android.os.Parcel
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.woodometer.R
+import com.example.woodometer.adapters.InfoItemAdapter
+import com.example.woodometer.interfaces.InformationItemListener
 import com.example.woodometer.interfaces.KeyboardListener
 import com.example.woodometer.model.enumerations.KeyboardField
 import com.example.woodometer.utils.GlobalUtils
+import com.example.woodometer.utils.GlobalUtils.POLOZAJ_STABLA
+import com.example.woodometer.utils.GlobalUtils.SOCIJALNI_STATUSI
+import com.example.woodometer.utils.GlobalUtils.STEPENI_SUSENJA
+import com.example.woodometer.utils.GlobalUtils.TEHNICKE_KLASE
 import com.example.woodometer.utils.NotificationsUtils
 import com.example.woodometer.viewmodels.DokumentViewModel
 import com.example.woodometer.viewmodels.KrugViewModel
+import com.google.android.material.button.MaterialButton
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -29,7 +40,7 @@ private const val ARG_PARAM2 = "param2"
  * Use the [KeyboardFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class KeyboardFragment : Fragment() {
+class KeyboardFragment : Fragment(),InformationItemListener {
     // TODO: Rename and change types of parameters
     private var text: String? = null
     private var diameter: Boolean? = null
@@ -109,6 +120,33 @@ class KeyboardFragment : Fragment() {
 
         return view
     }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val dozvoljeneVrednostiButton = view.findViewById<MaterialButton>(R.id.dozvoljeneVrednostiButton)
+        if(field in listOf(KeyboardField.UZGOJNA_GRUPA,KeyboardField.STEPEN_SUSENJA,
+                           KeyboardField.SOCIJALNI_STATUS,KeyboardField.TEHNICKA_KLASA,
+                           KeyboardField.POLOZAJ_STABLA,KeyboardField.PROBNA_DOZNAKA))
+        {
+            dozvoljeneVrednostiButton.visibility = View.VISIBLE
+        }
+        dozvoljeneVrednostiButton.setOnClickListener{
+            val transaction = parentFragmentManager.beginTransaction()
+            transaction.setCustomAnimations(
+                R.anim.enter_from_bottom,
+                R.anim.exit_to_bottom
+            )
+            transaction.add(R.id.main, InformationFragment().apply {
+                setField(field!!)
+                setListener(this@KeyboardFragment)
+            })
+            transaction.addToBackStack(null)
+            transaction.commit()
+        }
+
+    }
+
 
     private fun setUnitTextView(view: View) {
         val measurementUnitTextView = view.findViewById<TextView>(R.id.measurementUnitTextView)
@@ -246,7 +284,7 @@ class KeyboardFragment : Fragment() {
 
     private fun isProbnaDoznakaValid(): Boolean {
         if (!isInt()) { return false }
-        if (currentInput.toString().toInt() !in GlobalUtils.PROBNE_DOZNAKE) {
+        if (currentInput.toString().toInt() !in GlobalUtils.PROBNE_DOZNAKE.map { it.first }) {
             NotificationsUtils.showErrToast(requireContext(), "Invalidna $title!")
             return false
         }
@@ -332,5 +370,11 @@ class KeyboardFragment : Fragment() {
 
     fun trimToOneDecimal(number: Double): Double {
         return "%.1f".format(number).toDouble()
+    }
+
+    override fun informationPicked(number: Int) {
+        NotificationsUtils.showSuccessToast(context,"$field : $number")
+        listener?.onEnterPressed(number.toString())
+        parentFragmentManager.popBackStack()
     }
 }

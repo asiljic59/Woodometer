@@ -12,6 +12,7 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.replace
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -136,9 +137,15 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
             binding.noviDokumentButton.setOnClickListener{
                 dokumentVM.setTrenuntniDokument(Dokument())
                 dokumentVM.setTrenutniKrugovi(mutableListOf())
+                parentFragmentManager.beginTransaction().replace(R.id.main,StartMeasuringFragment().apply {
+                    setIsNew(true)
+                }).addToBackStack(null)
                 setupInputListeners()
             }
-            if (isNew == true) {binding.izvozTxtButton.visibility = View.GONE}
+            if (isNew == true) {
+                binding.izvozTxtButton.visibility = View.GONE
+                binding.noviDokumentButton.visibility = View.GONE
+            }
             binding.izvozTxtButton.setOnClickListener(){
                 izvozTxtClicked()
             }
@@ -230,12 +237,21 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
     }
 
     private fun addCircleClicked(){
+        if(isNew != false && !isDokumentValid()){
+            showErrToast(context,"Svi podaci dokumenta se moraju uneti!")
+            return
+        }
         if (krugVM.radniKrug.value == null){
             krugVM.setTrenutniKrug(Krug(dokumentId = dokumentVM.trenutniDokument.value?.id!!))
             parentFragmentManager.beginTransaction().add(R.id.main,AddCircleFragment()).addToBackStack(null).commit()
         }else{
             (activity as MainActivity).showEndCircleDialog(this,krugVM.radniKrug.value!!.brKruga,"Krug broj ${krugVM.radniKrug.value!!.brKruga} nije zavšen. Da li želite završiti trenutni radni krug?")
         }
+    }
+
+    private fun isDokumentValid() : Boolean{
+        val dokument : Dokument = dokumentVM.trenutniDokument.value!!
+        return !dokument.hasAnyDefaultVal()
     }
 
     //Krugovi recycler view
@@ -318,7 +334,6 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
             showSuccessToast(context, "Završen krug broj $rbr.")
             PreferencesUtils.clearWorkingCircleFromPrefs(context)
             krugVM.setDefaultRadniKrug()
-            parentFragmentManager.popBackStack()
         }
     }
 

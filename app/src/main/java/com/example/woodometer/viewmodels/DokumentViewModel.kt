@@ -58,6 +58,12 @@ class DokumentViewModel : ViewModel() {
 
     }
 
+    suspend fun isEmpty() : Boolean{
+        return withContext(Dispatchers.IO) {
+            dokumentRepository.isEmpty()  // Calls the isEmpty function in the repository
+        }
+    }
+
     fun getNewest(){
         viewModelScope.launch {
             val dokument = withContext(Dispatchers.IO) {

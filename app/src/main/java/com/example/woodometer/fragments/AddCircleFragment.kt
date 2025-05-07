@@ -201,8 +201,7 @@ class AddCircleFragment : Fragment(), KeyboardListener,SilviculturalTypeListener
 
     private fun isValid() : Boolean{
         val krug : Krug = krugVM.trenutniKrug.value!!
-        val dokument : Dokument = dokumentVM.trenutniDokument.value!!
-        return !(krug.hasAnyDefaultVal() || dokument.hasAnyDefaultVal())
+        return !krug.hasAnyDefaultVal()
     }
     companion object {
         /**

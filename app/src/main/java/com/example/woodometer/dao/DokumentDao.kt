@@ -20,4 +20,11 @@ interface DokumentDao {
 
     @Insert
     fun add (vararg dokument: Dokument)
+
+    @Query("SELECT COUNT(*) FROM dokument")
+    fun count(): Int
+
+    fun isEmpty(): Boolean {
+        return count() == 0
+    }
 }
