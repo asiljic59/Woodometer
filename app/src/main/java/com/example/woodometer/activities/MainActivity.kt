@@ -51,6 +51,11 @@ class MainActivity : AppCompatActivity() {
 
         supportFragmentManager.beginTransaction().replace(R.id.main, HomeScreenFragment()).commit()
 
+        if (krugVM.radniKrug.value != null){
+            krugVM.setTrenutniKrug(krugVM.radniKrug.value!!)
+            krugVM.setStablaKruga()
+        }
+
 
     }
     override fun attachBaseContext(newBase: Context) {
@@ -142,14 +147,6 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    fun vibratePhone(){
-        val vibrator = this.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        if (Build.VERSION.SDK_INT >= 26) {
-            vibrator.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
-        } else {
-            vibrator.vibrate(200)
-        }
-    }
 
 
 }

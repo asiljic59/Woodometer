@@ -25,6 +25,7 @@ import com.example.woodometer.utils.GlobalUtils.SOCIJALNI_STATUSI
 import com.example.woodometer.utils.GlobalUtils.STEPENI_SUSENJA
 import com.example.woodometer.utils.GlobalUtils.TEHNICKE_KLASE
 import com.example.woodometer.utils.NotificationsUtils
+import com.example.woodometer.utils.NotificationsUtils.showErrToast
 import com.example.woodometer.viewmodels.DokumentViewModel
 import com.example.woodometer.viewmodels.KrugViewModel
 import com.google.android.material.button.MaterialButton
@@ -144,6 +145,23 @@ class KeyboardFragment : Fragment(),InformationItemListener {
             transaction.commit()
         }
 
+        if (field == KeyboardField.AZIMUT){
+            val compassButton = view.findViewById<MaterialButton>(R.id.compassButton)
+            compassButton.visibility = View.VISIBLE
+            compassButton.setOnClickListener{
+                openCompass()
+            }
+        }
+
+    }
+
+    private fun openCompass(){
+        val intent = requireActivity().packageManager.getLaunchIntentForPackage("menion.android.locus.gis")
+        if (intent != null) {
+            startActivity(intent)
+        } else {
+            showErrToast(context, "Locus GIS is not installed")
+        }
     }
 
 

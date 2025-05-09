@@ -26,6 +26,10 @@ class ListOptionsAdapter(private val numbers: List<String>,private val listener 
         holder.optionCardView.setOnClickListener{
             listener.optionPicked(holder.numberText.text.toString())
         }
+        holder.optionCardView.setOnLongClickListener{
+            listener.deleteOption(numbers[position])
+            true
+        }
     }
 
     override fun getItemCount() = numbers.size

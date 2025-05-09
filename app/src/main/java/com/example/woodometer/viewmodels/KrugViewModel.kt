@@ -268,17 +268,19 @@ class KrugViewModel : ViewModel() {
         }
     }
 
-    fun isKrugValid(): Pair<Boolean, List<Int>> {
-        setStablaKruga()
-        val invalidStabla = areStablaValid()
-        val isValid = invalidStabla.isEmpty()
-        return Pair(isValid, invalidStabla)
+    suspend fun isKrugValid(): Pair<Boolean, List<Int>> {
+        val radniKrugStabla = withContext(Dispatchers.IO) {
+            radniKrug.value?.let { stabloRepository.getByKrug(it.id) } ?: emptyList()
+        }
+        val invalidStabla = areStablaValid(radniKrugStabla)
+        return Pair(invalidStabla.isEmpty(), invalidStabla)
     }
+
     //provera da li su SVA stabla kruga validna!
-    fun areStablaValid() : List<Int>{
+    fun areStablaValid(stabla: List<Stablo>) : List<Int>{
         val invalidStabla : MutableList<Int> = mutableListOf()
 
-        stablaKruga.value?.forEach{stablo ->
+        stabla.forEach{stablo ->
             if (stablo.hasAnyDefaultVal(radniKrug.value?.permanentna!!)){
                 invalidStabla.add(stablo.rbr)
             }

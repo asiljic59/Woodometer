@@ -8,12 +8,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.woodometer.R
 import com.example.woodometer.interfaces.AddOptionListener
+import com.example.woodometer.model.Dokument
 import com.example.woodometer.model.enumerations.ListOptionsField
+import com.example.woodometer.utils.NotificationsUtils
+import com.example.woodometer.utils.PreferencesUtils
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -132,5 +136,27 @@ class ListOptionsFragment : DialogFragment(), AddOptionListener {
     override fun optionPicked(option: String) {
         listener?.optionPicked(option)
         dismiss()
+    }
+
+    override fun deleteOption(option: String) {
+        showDeleteConfirmationDialog(option, onDelete = {
+            listener?.deleteOption(option)
+            dismiss()
+        })
+    }
+
+    fun showDeleteConfirmationDialog(option: String, onDelete : () -> Unit){
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setMessage("Da li ste sigurni da želite da obrišete opciju $option")
+            .setPositiveButton("Yes") { dialog, id ->
+                NotificationsUtils.showSuccessToast(context,"Opcija obrisana.")
+                onDelete()
+            }
+            .setNegativeButton("No") { dialog, id ->
+                dialog.dismiss()
+            }
+
+        val dialog = builder.create()
+        dialog.show()
     }
 }

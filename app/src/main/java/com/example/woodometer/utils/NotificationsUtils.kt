@@ -1,6 +1,11 @@
 package com.example.woodometer.utils
 
 import android.content.Context
+import android.media.AudioManager
+import android.media.ToneGenerator
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.widget.ImageView
@@ -11,6 +16,7 @@ import com.example.woodometer.R
 object NotificationsUtils {
     fun showErrToast(context: Context?,message : String){
         showToast(context,message,R.drawable.baseline_error_24)
+        vibratePhone(context!!)
     }
 
     fun showWarningToast(context: Context?,message: String){
@@ -19,6 +25,7 @@ object NotificationsUtils {
 
     fun showSuccessToast(context: Context?,message: String){
         showToast(context,message,R.drawable.baseline_check_circle_24)
+        vibratePhone(context!!)
     }
 
 
@@ -37,5 +44,15 @@ object NotificationsUtils {
         toast.view = layout
         toast.setGravity(Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL, 0, 100)
         toast.show()
+    }
+
+    fun vibratePhone(context: Context){
+        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        vibrator.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
+    }
+
+    fun playSound(){
+        val toneGen = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 60)
+        toneGen.startTone(ToneGenerator.TONE_PROP_ACK, 150)
     }
 }

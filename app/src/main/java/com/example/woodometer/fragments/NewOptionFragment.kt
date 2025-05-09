@@ -94,6 +94,15 @@ class NewOptionFragment : DialogFragment() {
                 return false
             }
             
+        } else if (field == ListOptionsField.ODSEK){
+            if (editText.text.toString().length != 1){
+                NotificationsUtils.showErrToast(context,"Odsek mora biti tačno jedno slovo (A-Z)!")
+            }else{
+                val char : Char = editText.text.toString()[0]
+                if (char !in 'a'..'z'){
+                    NotificationsUtils.showErrToast(context,"Odsek mora biti slovo u opsegu A-Z!")
+                }
+            }
         }
         return true
     }

@@ -28,6 +28,7 @@ import com.example.woodometer.model.enumerations.KeyboardField
 import com.example.woodometer.utils.GlobalUtils.VRSTE_DRVECA
 import com.example.woodometer.utils.KeyboardUtils.currentInputField
 import com.example.woodometer.utils.KeyboardUtils.setupInputKeyboardClickListeners
+import com.example.woodometer.utils.NotificationsUtils
 import com.example.woodometer.utils.NotificationsUtils.showErrToast
 import com.example.woodometer.utils.NotificationsUtils.showSuccessToast
 import com.example.woodometer.utils.PreferencesUtils
@@ -188,9 +189,7 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
         if (krugViewModel.trenutnoStablo.value?.hasAnyNonDefaultVal()!!){
             krugViewModel.updateTrenutnoStablo()
             showSuccessToast(context,"Sačuvano stablo ${krugViewModel.trenutnoStablo.value?.rbr}")
-            (activity as MainActivity).vibratePhone()
-            val toneGen = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100)
-            toneGen.startTone(ToneGenerator.TONE_PROP_ACK, 150)
+            NotificationsUtils.playSound()
         }else{
             showErrToast(context, "Morate popuniti bar neku vrednost da biste kreirali novo stablo!")
         }
@@ -259,13 +258,14 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
 
     override fun finishConfirmed(finish: Boolean, rbr: Int) {
         if (!finish) {return}
-        val isValid : Pair<Boolean,List<Int>> = krugViewModel.isKrugValid()
+        val invalidStabla = krugViewModel.areStablaValid(krugViewModel.stablaKruga.value!!)
+        val isValid = invalidStabla.isEmpty()
         if (krugViewModel.stablaKruga.value?.isEmpty() == true){
             showErrToast(context,"Radni krug nema nijedno stablo!")
             return
         }
-        if (!isValid.first){
-            showErrToast(context,"Stabla broj ${isValid.second.joinToString(",") } su invalidna! ")
+        if (!isValid){
+            showErrToast(context,"Stabla broj ${invalidStabla.joinToString(",") } su invalidna! ")
             return
         }
         if (finish){

@@ -22,6 +22,17 @@ object PreferencesUtils {
         val joined = list.joinToString(",") // e.g. "123,456,789"
         sharedPrefs?.edit()?.putString(fileName, joined)?.apply()
     }
+    fun removeItemFromListInPrefs(context: Context?, fileName: String, itemToRemove: String) {
+        val sharedPrefs = context?.getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
+        val currentListString = sharedPrefs?.getString(fileName, "") ?: ""
+        val currentList = currentListString.split(",").filter { it.isNotBlank() }.toMutableList()
+
+        if (currentList.remove(itemToRemove)) {
+            val updatedListString = currentList.joinToString(",")
+            sharedPrefs?.edit()?.putString(fileName, updatedListString)?.apply()
+        }
+    }
+
 
     fun getWorkingCircleFromPrefs(context: Context?) : String?{
         val sharedPrefs = context?.getSharedPreferences("myPrefs", Context.MODE_PRIVATE)

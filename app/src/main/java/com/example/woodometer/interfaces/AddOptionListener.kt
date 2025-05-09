@@ -5,4 +5,5 @@ package com.example.woodometer.interfaces
 interface AddOptionListener {
     fun addOption(option : String)
     fun optionPicked(option : String)
+    fun deleteOption(option: String)
 }

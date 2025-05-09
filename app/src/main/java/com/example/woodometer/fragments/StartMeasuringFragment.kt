@@ -240,6 +240,7 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
             parentFragmentManager.beginTransaction().add(R.id.main,AddCircleFragment()).addToBackStack(null).commit()
         }else{
             (activity as MainActivity).showEndCircleDialog(this,krugVM.radniKrug.value!!.brKruga,"Krug broj ${krugVM.radniKrug.value!!.brKruga} nije zavšen. Da li želite završiti trenutni radni krug?")
+            (activity as MainActivity).showEndCircleDialog(this,krugVM.radniKrug.value!!.brKruga,"Krug broj ${krugVM.radniKrug.value!!.brKruga} nije zavšen. Da li želite završiti trenutni radni krug?")
         }
     }
 
@@ -312,23 +313,33 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
         currentOptionField.text = option
     }
 
+    override fun deleteOption(option: String) {
+        PreferencesUtils.removeItemFromListInPrefs(context,currentOptionsFile,option)
+    }
+
     override fun circleChanged(krug: Krug) {
         krugVM.setTrenutniKrug(krug)
         parentFragmentManager.beginTransaction().setReorderingAllowed(true).replace(R.id.main,CircleFragment()).addToBackStack(null).commit()
     }
 
     override fun finishConfirmed(finish: Boolean, rbr: Int) {
-        krugVM.setTrenutniKrug(krugVM.radniKrug.value!!)
-        val isValid : Pair<Boolean,List<Int>> = krugVM.isKrugValid()
-        if (!isValid.first){
-            showErrToast(context,"Stabla broj ${isValid.second.joinToString(",") } su invalidna! ")
-            return
+        if (!finish){return}
+        lifecycleScope.launch {
+            val (isValid, invalidList) = krugVM.isKrugValid()
+            if (!isValid) {
+                showErrToast(context, "Stabla broj ${invalidList.joinToString(",")} su invalidna!")
+                return@launch
+            }
+            if (finish){
+                showSuccessToast(context, "Završen krug broj $rbr.")
+                PreferencesUtils.clearWorkingCircleFromPrefs(context)
+                krugVM.setDefaultRadniKrug()
+                parentFragmentManager.popBackStack()
+            }
         }
-        if (finish){
-            showSuccessToast(context, "Završen krug broj $rbr.")
-            PreferencesUtils.clearWorkingCircleFromPrefs(context)
-            krugVM.setDefaultRadniKrug()
-        }
+
+
+
     }
 
     override fun showEditDeleteDialog(krug: Krug) {
