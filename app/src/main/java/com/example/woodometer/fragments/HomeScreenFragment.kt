@@ -69,16 +69,14 @@ class HomeScreenFragment : Fragment() {
 
     private fun startMerenjaButtonClicked() {
         CoroutineScope(Dispatchers.Main).launch {
-            // Refresh the data
-            dokumentVM.refreshData()
 
-            // Check if the table is empty
-            val isNew = dokumentVM.isEmpty()
-
-            // Create the fragment
-            val fragment = StartMeasuringFragment().apply {
-                setIsNew(isNew)  // Pass the result to the fragment
+            val oldID = dokumentVM.trenutniDokument.value?.id!!
+            dokumentVM.getNewest()
+            if (dokumentVM.trenutniDokument.value!!.id != oldID){
+                dokumentVM.refreshData()
             }
+            // Create the fragment
+            val fragment = StartMeasuringFragment()
 
             // Replace the fragment
             parentFragmentManager.beginTransaction()

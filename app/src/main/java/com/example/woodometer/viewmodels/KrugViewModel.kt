@@ -84,9 +84,10 @@ class KrugViewModel : ViewModel() {
 
     fun resetStablo() {
         viewModelScope.launch {
+            val vrsta = trenutnoStablo.value?.vrsta!!
             val stablaList = _stablaKruga.value ?: emptyList()
             val rbr = stablaList.maxOfOrNull { it.rbr } ?: 0
-            _trenutnoStablo.value  = _trenutniKrug.value?.id?.let { Stablo(rbr = rbr+1, krugId = it) }
+            _trenutnoStablo.value  = _trenutniKrug.value?.id?.let { Stablo(rbr = rbr+1, krugId = it, vrsta = vrsta) }
         }
     }
     fun deleteStablo(rbr: Int) {

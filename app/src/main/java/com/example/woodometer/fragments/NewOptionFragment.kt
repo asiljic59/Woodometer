@@ -14,6 +14,7 @@ import androidx.fragment.app.DialogFragment
 import com.example.woodometer.R
 import com.example.woodometer.interfaces.AddOptionListener
 import com.example.woodometer.model.enumerations.ListOptionsField
+import com.example.woodometer.utils.NotificationsUtils
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -85,8 +86,14 @@ class NewOptionFragment : DialogFragment() {
             }
             Toast.makeText(context, "Gazdinska jedinica mora imati tačno 4 cifre!", Toast.LENGTH_SHORT).show()
             return false
-        } else {
-
+        } else if (field  == ListOptionsField.KORISNIK) {
+            try {
+                val number = editText.text.toString().toInt()
+            }catch (e : NumberFormatException) {
+                NotificationsUtils.showErrToast(context, "Korisnik mora biti broj")
+                return false
+            }
+            
         }
         return true
     }

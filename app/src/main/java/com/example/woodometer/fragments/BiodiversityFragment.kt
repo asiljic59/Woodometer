@@ -76,7 +76,6 @@ class BiodiversityFragment : Fragment() {
         setupLayouts(binding.root)
         binding.backButton.setOnClickListener{
             parentFragmentManager.popBackStack()
-            krugViewModel.updateBiodiverzitet()
         }
 
         return binding.root
@@ -85,6 +84,11 @@ class BiodiversityFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         krugViewModel.getBiodiverzitetByKrug()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        krugViewModel.updateBiodiverzitet()
     }
 
     companion object {

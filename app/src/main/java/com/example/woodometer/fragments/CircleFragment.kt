@@ -1,16 +1,16 @@
 package com.example.woodometer.fragments
 
-import android.annotation.SuppressLint
+import android.media.AudioManager
+import android.media.ToneGenerator
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.woodometer.R
@@ -33,8 +33,8 @@ import com.example.woodometer.utils.NotificationsUtils.showSuccessToast
 import com.example.woodometer.utils.PreferencesUtils
 import com.example.woodometer.viewmodels.KrugViewModel
 import com.google.android.material.textfield.TextInputEditText
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -188,6 +188,9 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
         if (krugViewModel.trenutnoStablo.value?.hasAnyNonDefaultVal()!!){
             krugViewModel.updateTrenutnoStablo()
             showSuccessToast(context,"Sačuvano stablo ${krugViewModel.trenutnoStablo.value?.rbr}")
+            (activity as MainActivity).vibratePhone()
+            val toneGen = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100)
+            toneGen.startTone(ToneGenerator.TONE_PROP_ACK, 150)
         }else{
             showErrToast(context, "Morate popuniti bar neku vrednost da biste kreirali novo stablo!")
         }
@@ -219,7 +222,7 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
 
 
     override fun onClearPressed() {
-        currentInputField?.setText("")
+        TODO()
     }
 
     override fun setTreeType(name: String, key: Int) {
@@ -255,7 +258,7 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
     }
 
     override fun finishConfirmed(finish: Boolean, rbr: Int) {
-        krugViewModel.setTrenutniKrug(krugViewModel.radniKrug.value!!)
+        if (!finish) {return}
         val isValid : Pair<Boolean,List<Int>> = krugViewModel.isKrugValid()
         if (krugViewModel.stablaKruga.value?.isEmpty() == true){
             showErrToast(context,"Radni krug nema nijedno stablo!")

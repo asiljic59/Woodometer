@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.replace
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -16,9 +17,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.woodometer.R
 import com.example.woodometer.adapters.DocumentsAdapter
 import com.example.woodometer.interfaces.DocumentsListener
+import com.example.woodometer.interfaces.TreeListener
 import com.example.woodometer.model.Dokument
+import com.example.woodometer.utils.NotificationsUtils
 import com.example.woodometer.utils.PreferencesUtils
 import com.example.woodometer.viewmodels.DokumentViewModel
+import com.example.woodometer.viewmodels.KrugViewModel
 import kotlinx.coroutines.launch
 
 // TODO: Rename parameter arguments, choose names that match
@@ -37,6 +41,7 @@ class DocumentsFragment : Fragment(), DocumentsListener {
     private var param2: String? = null
 
     private lateinit var documentsRecylerView : RecyclerView
+
     private lateinit var  adapter : DocumentsAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,6 +52,7 @@ class DocumentsFragment : Fragment(), DocumentsListener {
         }
     }
     private lateinit var dokumentiViewModel : DokumentViewModel
+    private lateinit var krugVM : KrugViewModel
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -55,6 +61,7 @@ class DocumentsFragment : Fragment(), DocumentsListener {
         val view = inflater.inflate(R.layout.fragment_documents, container, false)
 
         dokumentiViewModel = ViewModelProvider(requireActivity())[DokumentViewModel::class.java]
+        krugVM = ViewModelProvider(requireActivity())[KrugViewModel::class.java]
         val backButton = view.findViewById<ImageButton>(R.id.backButton)
         backButton.setOnClickListener{
             parentFragmentManager.popBackStack()
@@ -98,9 +105,33 @@ class DocumentsFragment : Fragment(), DocumentsListener {
         }
         //ne dozvoljavamo da se menjaju podaci vec postojeceg, upisanog dokumenta!!!
 
-        val fragment = StartMeasuringFragment().apply {
-            setIsNew(false)
-        }
+        val fragment = StartMeasuringFragment()
         parentFragmentManager.beginTransaction().replace(R.id.main,fragment).addToBackStack(null).commit()
+    }
+
+    override fun docLongClicked(dokument: Dokument) {
+        showDeleteConfirmationDialog(dokument, onDelete = {
+            dokumentiViewModel.delete()
+            //Ako brisemo dokument,radni krug kao i svi se brisu i ne pamti se
+            if (dokumentiViewModel.existsKrug(krugVM.radniKrug.value)){
+                PreferencesUtils.clearWorkingCircleFromPrefs(context)
+                krugVM.setDefaultRadniKrug()
+            }
+        })
+    }
+
+    fun showDeleteConfirmationDialog(dokument: Dokument,onDelete : () -> Unit){
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setMessage("Da li ste sigurni da želite da obrišete dokument => ${dokument.gazJedinica} ${dokument.brOdeljenja} ${dokument.odsek}")
+            .setPositiveButton("Yes") { dialog, id ->
+                NotificationsUtils.showSuccessToast(context,"Dokument obrisan.")
+                onDelete()
+            }
+            .setNegativeButton("No") { dialog, id ->
+                dialog.dismiss()
+            }
+
+        val dialog = builder.create()
+        dialog.show()
     }
 }

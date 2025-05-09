@@ -103,9 +103,9 @@ class AddDeadTreeFragment : Fragment(),KeyboardListener,TreeTypeListener {
     }
     private fun createKeyboardHashMap(){
         keyboardTextViews = hashMapOf(
-            binding.precnikLayout to Triple(binding.precnikTextView,"Prečnik",KeyboardField.PRECNIK),
+            binding.precnikLayout to Triple(binding.precnikTextView,"Prečnik",KeyboardField.PRECNIK_MRTVO_STABLO),
             binding.polozajStablaLayout to Triple(binding.polozajStablaTextView,"Položaj stabla",KeyboardField.POLOZAJ_STABLA),
-            binding.visinaLayout to Triple(binding.visinaTextView,"Visina/Dužina stabla",KeyboardField.VISINA)
+            binding.visinaLayout to Triple(binding.visinaTextView,"Visina/Dužina stabla",KeyboardField.DUZINA)
         )
     }
 

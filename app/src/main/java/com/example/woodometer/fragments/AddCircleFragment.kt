@@ -140,10 +140,10 @@ class AddCircleFragment : Fragment(), KeyboardListener,SilviculturalTypeListener
     }
 
     suspend fun ensureDocument(onReady: suspend () -> Unit) {
-        val exists = suspendCancellableCoroutine<Boolean> { cont ->
-            dokumentVM.exists { exists -> cont.resume(exists, null) }
+        val existsAndSame = suspendCancellableCoroutine<Boolean> { cont ->
+            dokumentVM.existsAndSame { exists -> cont.resume(exists, null) }
         }
-        if (!exists) {
+        if (!existsAndSame) {
             dokumentVM.add()
         }
         onReady()

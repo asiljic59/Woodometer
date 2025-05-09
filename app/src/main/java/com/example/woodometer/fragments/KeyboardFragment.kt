@@ -19,6 +19,7 @@ import com.example.woodometer.interfaces.InformationItemListener
 import com.example.woodometer.interfaces.KeyboardListener
 import com.example.woodometer.model.enumerations.KeyboardField
 import com.example.woodometer.utils.GlobalUtils
+import com.example.woodometer.utils.GlobalUtils.DIAMETER_HEIGHT_LIMIT
 import com.example.woodometer.utils.GlobalUtils.POLOZAJ_STABLA
 import com.example.woodometer.utils.GlobalUtils.SOCIJALNI_STATUSI
 import com.example.woodometer.utils.GlobalUtils.STEPENI_SUSENJA
@@ -101,20 +102,18 @@ class KeyboardFragment : Fragment(),InformationItemListener {
 
         // Clear button (X)
         view.findViewById<Button>(R.id.btnX).setOnClickListener {
-            listener?.onClearPressed()
             currentInput.clear()
             updateDisplay()
         }
 
         // Save button
         view.findViewById<Button>(R.id.btnSave).setOnClickListener {
-            saveInput()
-            listener?.onEnterPressed(currentInput.toString());
+            val valid = saveInput()
+            if (valid){listener?.onEnterPressed(currentInput.toString());}
         }
 
         closeButton.setOnClickListener{
             currentInput.clear()
-            listener?.onClearPressed()
             parentFragmentManager.popBackStack()
         }
 
@@ -173,11 +172,13 @@ class KeyboardFragment : Fragment(),InformationItemListener {
         tvInput.text = if (currentInput.isEmpty()) "00" else "${currentInput}"
     }
 
-    private fun saveInput() {
+    private fun saveInput() : Boolean {
         if (isValid()){
             val measurement = currentInput.ifEmpty { "0" }
             parentFragmentManager.popBackStack()
+            return true
         }
+        return false
     }
 
     companion object {
@@ -211,11 +212,13 @@ class KeyboardFragment : Fragment(),InformationItemListener {
         }
         if (field == KeyboardField.PRECNIK){
             return isPrecnikValid()
+        }else if (field == KeyboardField.PRECNIK_MRTVO_STABLO){
+            return isPrecnikMrtvoStabloValid()
         }else if (field == KeyboardField.AZIMUT){
             return isAzimutValid()
         }else if(field == KeyboardField.RAZDALJINA){
             return isDistanceValid()
-        }else if(field in listOf(KeyboardField.VISINA,KeyboardField.DUZINA_DEBLA,KeyboardField.ODELJENJE,KeyboardField.ID)){
+        }else if(field in listOf(KeyboardField.ODELJENJE,KeyboardField.ID,KeyboardField.DUZINA)){
             return isInt()
         }else if (field in listOf(KeyboardField.SOCIJALNI_STATUS, KeyboardField.TEHNICKA_KLASA)){
             return isStatusValid()
@@ -231,6 +234,8 @@ class KeyboardFragment : Fragment(),InformationItemListener {
             return isUzgojnaGrupaValid()
         } else if (field == KeyboardField.PROBNA_DOZNAKA){
             return isProbnaDoznakaValid()
+        }else if (field in listOf(KeyboardField.VISINA,KeyboardField.DUZINA_DEBLA)){
+            return isVisinaValid()
         }
 
         return true
@@ -315,9 +320,22 @@ class KeyboardFragment : Fragment(),InformationItemListener {
     private fun isPrecnikValid(): Boolean {
         if (!isDecimalValid()) { return false }
         val number = currentInput.toString().toDouble()
-        if (number < 30 && krugViewModel.trenutnoStablo.value?.razdaljina!! > GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30) {
+        if (number < GlobalUtils.DIAMETER_LOWER_LIMIT){
+            NotificationsUtils.showErrToast(context,"Prečnik ne sme biti manji od 10cm!")
+            return false
+        }else if (number < DIAMETER_HEIGHT_LIMIT && krugViewModel.trenutnoStablo.value?.razdaljina!! > GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30) {
             NotificationsUtils.showErrToast(requireContext(), "Za prečnik manji od 30cm razdaljina mora biti ispod ${GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30}")
             return false
+        }
+        return true
+    }
+
+    //ZA MRTVO STABLO SAMO <10cm
+    private fun isPrecnikMrtvoStabloValid() : Boolean {
+        if (!isDecimalValid()) {return  false}
+        val number = currentInput.toString().toDouble()
+        if (number < GlobalUtils.DIAMETER_LOWER_LIMIT){
+            NotificationsUtils.showErrToast(context,"Prečnik ne sme biti manji od 10cm!")
         }
         return true
     }
@@ -325,10 +343,11 @@ class KeyboardFragment : Fragment(),InformationItemListener {
     private fun isDistanceValid(): Boolean {
         if (!isDecimalValid()) { return false }
         val number = currentInput.toString().toDouble()
-        if (number > GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30 && krugViewModel.trenutnoStablo.value?.precnik!! < 30) {
+        val precnik = krugViewModel.trenutnoStablo.value?.precnik!!
+        if (number > GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30 && precnik != 0f && precnik <= DIAMETER_HEIGHT_LIMIT) {
             NotificationsUtils.showErrToast(requireContext(), "Za prečnik manji od 30cm razdaljina mora biti ispod ${GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30}")
             return false
-        } else if (number >= GlobalUtils.DISTANCE_UPPER_LIMIT) {
+        } else if (number > GlobalUtils.DISTANCE_UPPER_LIMIT) {
             NotificationsUtils.showErrToast(requireContext(), "Razdaljina ne sme biti veća od ${GlobalUtils.DISTANCE_UPPER_LIMIT}")
             return false
         }
@@ -344,6 +363,23 @@ class KeyboardFragment : Fragment(),InformationItemListener {
         } catch (e: NumberFormatException) {
             NotificationsUtils.showErrToast(requireContext(), "Azimut mora biti broj u opsegu 0-360!")
             return false
+        }
+        return true
+    }
+
+    fun isVisinaValid() : Boolean{
+        if (!isInt()){return false;}
+        val krug  = krugViewModel.trenutnoStablo.value
+        if (field == KeyboardField.VISINA){
+            if(currentInput.toString().toInt() < krug?.duzDebla!!){
+                NotificationsUtils.showErrToast(context,"Visina ne sme biti manja od dužine debla")
+                return false
+            }
+        }else if (field == KeyboardField.DUZINA_DEBLA){
+            if (currentInput.toString().toInt() > krug?.visina!!){
+                NotificationsUtils.showErrToast(context,"Dužina debla ne sme biti veća od visine")
+                return false
+            }
         }
         return true
     }

@@ -82,12 +82,20 @@ class DokumentViewModel : ViewModel() {
         }
     }
 
-    fun exists(onResult : (Boolean) -> Unit) {
+    fun existsAndSame(onResult : (Boolean) -> Unit) {
         viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) {
-                dokumentRepository.exists(trenutniDokument.value?.id!!)
+            withContext(Dispatchers.IO){
+                var result = dokumentRepository.exists(trenutniDokument.value?.id!!)
+                if (result){
+                    val dokument = dokumentRepository.get(trenutniDokument.value?.id!!)
+                    if (dokument.hashCode() != trenutniDokument.value.hashCode()){
+                        result = false
+                    }
+                }
+                onResult(result)
             }
-            onResult(result)
+
+
         }
     }
 
@@ -96,8 +104,25 @@ class DokumentViewModel : ViewModel() {
             withContext(Dispatchers.IO){
                 trenutniDokument.value?.let {
                     dokumentRepository.add(it)
-                    _dokumenti.value?.add(it)
+                    val newDoc = trenutniDokument.value!!
+                    _dokumenti.postValue(
+                        (_dokumenti.value.orEmpty()
+                            .map { if (it.id == newDoc.id) newDoc else it } // Replace if exists
+                            .takeIf { list -> list.any { it.id == newDoc.id } }?.toMutableList()
+                            ?: (_dokumenti.value.orEmpty() + newDoc)).toMutableList()
+                    )// Add if doesn't exist
                 }
+            }
+        }
+    }
+
+    fun delete(){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                val newDocs = _dokumenti.value!!
+                newDocs.remove(trenutniDokument.value)
+                _dokumenti.postValue(newDocs)
+                dokumentRepository.delete(trenutniDokument.value!!)
             }
         }
     }

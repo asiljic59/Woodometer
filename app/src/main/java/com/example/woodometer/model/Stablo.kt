@@ -17,7 +17,7 @@ import java.util.UUID
 data class Stablo(
     @PrimaryKey
     var id : UUID = UUID.randomUUID(),
-    var vrsta: Int = 11,
+    var vrsta: Int = 61,
     var azimut: Int = 0,
     var razdaljina: Float = 0f,
     var precnik: Float = 0f,

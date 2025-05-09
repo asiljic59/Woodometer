@@ -38,6 +38,10 @@ class DocumentsAdapter(private var docs : List<Dokument>,private val documentsLi
             holder.documentCardView.setOnClickListener{
                 documentsListener.docClicked(docs[position])
             }
+            holder.documentCardView.setOnLongClickListener{
+                documentsListener.docLongClicked(docs[position])
+                true
+            }
 
         }
         fun formatText(dokument: Dokument) : String{

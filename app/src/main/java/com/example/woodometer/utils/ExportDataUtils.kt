@@ -34,7 +34,7 @@ object ExportDataUtils {
         if (currentFile.exists()) {
             currentFile.writeText("")
         }
-        writeOpis()
+        writeMetaData()
         krugovi.forEach { krug ->
             this.krug = krug
             writeIndikacija()
@@ -49,13 +49,47 @@ object ExportDataUtils {
         return currentFile
     }
 
+    private fun writeMetaData(){
+        writeGJ()
+        writeOdeljenje()
+        writeOdsek()
+        writeOpis()
+    }
+
+    private fun writeGJ() {
+        val insertQuery = "INSERT INTO OsnGj (GJ) " +
+                "SELECT ${dokument.gazJedinica} AS GJ "+
+                "FROM (SELECT COUNT(*) AS RecordCount FROM OsnGj " +
+                "WHERE GJ = ${dokument.gazJedinica}) AS Temp " +
+                "WHERE Temp.RecordCount = 0;"
+        queries.append(insertQuery).append(System.lineSeparator())
+    }
+
+    private fun writeOdeljenje(){
+        val insertQuery = "INSERT INTO OsnOdeljenje (GJ,ODELJENJE) " +
+                "SELECT ${dokument.gazJedinica} AS GJ, ${dokument.brOdeljenja} as ODELJENJE "+
+                "FROM (SELECT COUNT(*) AS RecordCount FROM OsnOdeljenje " +
+                "WHERE GJ = ${dokument.gazJedinica} AND ODELJENJE = ${dokument.brOdeljenja}) AS Temp " +
+                "WHERE Temp.RecordCount = 0;"
+        queries.append(insertQuery).append(System.lineSeparator())
+    }
+
+    private fun writeOdsek(){
+        val insertQuery = "INSERT INTO OsnOdsek (GJ,ODELJENJE,ODSEK) " +
+                "SELECT ${dokument.gazJedinica} AS GJ, ${dokument.brOdeljenja} as ODELJENJE, '${dokument.odsek}' AS ODSEK "+
+                "FROM (SELECT COUNT(*) AS RecordCount FROM OsnOdsek " +
+                "WHERE GJ = ${dokument.gazJedinica} AND ODELJENJE = ${dokument.brOdeljenja} AND ODSEK = '${dokument.odsek}') AS Temp " +
+                "WHERE Temp.RecordCount = 0;"
+        queries.append(insertQuery).append(System.lineSeparator())
+    }
+
     private fun writeOpis() {
         val odeljenje: String = dokument.brOdeljenja.toString().padStart(3, '0')
-        val gisOdsek: String = "${dokument.gazJedinica}${odeljenje}${dokument.odsek}"
+        val gisOdsek = "${dokument.gazJedinica}${odeljenje}${dokument.odsek}"
         val insertQuery = "INSERT INTO OpisOpste (GJ, ODELJENJE, ODSEK, GisOdsek, NAC_ZAPRE, NAC_PRIR) " +
-                "SELECT ${dokument.gazJedinica} AS GJ, ${dokument.brOdeljenja} AS ODELJENJE, '${dokument.odsek}' AS ODSEK, $gisOdsek as GisOdsek, $NAC_ZAPRE as NAC_ZAPRE, $NAC_PRIR as NAC_PRIR"+
-                "FROM (SELECT COUNT(*) AS RecordCount FROM Indikacija " +
-                "WHERE GJ = ${dokument.gazJedinica} AND ODELJENJE = ${dokument.brOdeljenja} AND ODSEK = '${dokument.odsek}'     AS Temp " +
+                "SELECT ${dokument.gazJedinica} AS GJ, ${dokument.brOdeljenja} AS ODELJENJE, '${dokument.odsek}' AS ODSEK, '$gisOdsek' as GisOdsek, $NAC_ZAPRE as NAC_ZAPRE, $NAC_PRIR as NAC_PRIR "+
+                "FROM (SELECT COUNT(*) AS RecordCount FROM OpisOpste " +
+                "WHERE GJ = ${dokument.gazJedinica} AND ODELJENJE = ${dokument.brOdeljenja} AND ODSEK = '${dokument.odsek}') AS Temp " +
                 "WHERE Temp.RecordCount = 0;"
         queries.append(insertQuery).append(System.lineSeparator())
     }
@@ -69,8 +103,13 @@ object ExportDataUtils {
             krug.IdBroj == null -> 0
             else -> krug.IdBroj
         }
-        val insertQuery = "INSERT INTO Indikacija (GJ, ODELJENJE, ODSEK, BrKr, Stalna, Nagib, BrStalneTacke, Uz_Grupa, GTS) " +
-                "SELECT ${dokument.gazJedinica} AS GJ, ${dokument.brOdeljenja} AS ODELJENJE, '${dokument.odsek}' AS ODSEK, ${krug.brKruga} AS BrKr, $permanentni as Stalna, ${krug.nagib} as Nagib, $krugId as BrStalneTacke, ${krug.uzgojnaGrupa} as Uz_Grupa, ${krug.gazTip} as GTS " +
+        val pristupacnost = when {
+            krug.pristupacnost == true -> 0
+            else -> 0
+        }
+        val insertQuery = "INSERT INTO Indikacija (GJ, ODELJENJE, ODSEK, BrKr, Stalna, Nagib, Pristupacnost, BrStalneTacke, Uz_Grupa, GTS) " +
+                "SELECT ${dokument.gazJedinica} AS GJ, ${dokument.brOdeljenja} AS ODELJENJE, '${dokument.odsek}' AS ODSEK, ${krug.brKruga} AS BrKr, $permanentni as Stalna, ${krug.nagib} as Nagib, $pristupacnost as Pristupacnost," +
+                " $krugId as BrStalneTacke, ${krug.uzgojnaGrupa} as Uz_Grupa, ${krug.gazTip} as GTS " +
                 "FROM (SELECT COUNT(*) AS RecordCount FROM Indikacija " +
                 "WHERE GJ = ${dokument.gazJedinica} AND ODELJENJE = ${dokument.brOdeljenja} AND ODSEK = '${dokument.odsek}' AND BrKr = ${krug.brKruga}) AS Temp " +
                 "WHERE Temp.RecordCount = 0;"

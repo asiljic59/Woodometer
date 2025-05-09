@@ -10,6 +10,14 @@ class DokumentRepository  {
         return dokumentDao.add(*item)
     }
 
+    fun get(id : UUID) : Dokument{
+        return dokumentDao.get(id)
+    }
+
+    fun delete(dokument: Dokument){
+        dokumentDao.delete(dokument)
+    }
+
     fun getAll(): MutableList<Dokument> {
         return dokumentDao.getAll()
     }

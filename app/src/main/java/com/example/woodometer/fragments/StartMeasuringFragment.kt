@@ -77,12 +77,6 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
     private lateinit var dokumentVM : DokumentViewModel
     private lateinit var krugVM : KrugViewModel
 
-    private var isNew : Boolean? = null
-
-    fun setIsNew(isNew: Boolean){
-        this.isNew = isNew
-    }
-
     //polja koja otvaraju tastaturu
     private lateinit var keyboardTextViews : HashMap<ConstraintLayout,Triple<TextInputEditText,String,KeyboardField>>
 
@@ -137,26 +131,26 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
             binding.noviDokumentButton.setOnClickListener{
                 dokumentVM.setTrenuntniDokument(Dokument())
                 dokumentVM.setTrenutniKrugovi(mutableListOf())
-                parentFragmentManager.beginTransaction().replace(R.id.main,StartMeasuringFragment().apply {
-                    setIsNew(true)
-                }).addToBackStack(null)
-                setupInputListeners()
-            }
-            if (isNew == true) {
-                binding.izvozTxtButton.visibility = View.GONE
-                binding.noviDokumentButton.visibility = View.GONE
+                setupMetaData()
             }
             binding.izvozTxtButton.setOnClickListener(){
                 izvozTxtClicked()
             }
 
-            if (isNew == true){
-                setupInputListeners()
-            }
+            setupInputListeners()
             //stavljanje imena dokumenta itd itd
             setupMetaData()
         }
 
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        lifecycleScope.launch {
+            dokumentVM.existsAndSame { result ->
+                if (!result && !dokumentVM.trenutniDokument.value?.hasAnyDefaultVal()!!) {dokumentVM.add()}
+            }
+        }
     }
     companion object {
         /**
@@ -237,7 +231,7 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
     }
 
     private fun addCircleClicked(){
-        if(isNew != false && !isDokumentValid()){
+        if(!isDokumentValid()){
             showErrToast(context,"Svi podaci dokumenta se moraju uneti!")
             return
         }

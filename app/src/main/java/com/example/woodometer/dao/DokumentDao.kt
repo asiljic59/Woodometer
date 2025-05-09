@@ -1,8 +1,10 @@
 package com.example.woodometer.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Upsert
 import com.example.woodometer.model.Dokument
 import java.util.UUID
 
@@ -18,8 +20,14 @@ interface DokumentDao {
     @Query("SELECT EXISTS(SELECT 1 FROM Dokument WHERE id = :id )")
     fun exists(id : UUID) : Boolean
 
-    @Insert
+    @Upsert
     fun add (vararg dokument: Dokument)
+
+    @Delete
+    fun delete(dokument: Dokument)
+
+    @Query("SELECT * FROM Dokument WHERE id = :id")
+    fun get(id : UUID) : Dokument
 
     @Query("SELECT COUNT(*) FROM dokument")
     fun count(): Int

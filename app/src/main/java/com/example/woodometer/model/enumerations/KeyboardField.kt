@@ -16,5 +16,7 @@ enum class KeyboardField {
     ID,
     GAZ_TIP,
     UZGOJNA_GRUPA,
-    BR_KRUG
+    BR_KRUG,
+    PRECNIK_MRTVO_STABLO,
+    DUZINA
 }

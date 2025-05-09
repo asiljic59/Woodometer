@@ -10,6 +10,10 @@ import java.time.format.DateTimeFormatter
 object GlobalUtils {
     const val DISTANCE_UPPER_LIMIT = 12.62
     const val DISTANCE_UPPER_LIMIT_UNDER_30 = 7.98
+    //najmanja moguca
+    const val DIAMETER_LOWER_LIMIT = 10.1
+    //najmanja moguca PREKO DISTANCE_UPPER_LIMIT_UNDER_30 = 7.98 do 12.62
+    const val DIAMETER_HEIGHT_LIMIT = 30.1
 
     const val NAC_ZAPRE = 8
     const val NAC_PRIR = 6
