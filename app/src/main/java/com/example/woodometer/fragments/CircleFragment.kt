@@ -26,6 +26,7 @@ import com.example.woodometer.model.MrtvoStablo
 import com.example.woodometer.model.Stablo
 import com.example.woodometer.model.enumerations.KeyboardField
 import com.example.woodometer.utils.GlobalUtils.VRSTE_DRVECA
+import com.example.woodometer.utils.GlobalUtils.lastKrug
 import com.example.woodometer.utils.KeyboardUtils.currentInputField
 import com.example.woodometer.utils.KeyboardUtils.setupInputKeyboardClickListeners
 import com.example.woodometer.utils.NotificationsUtils
@@ -34,6 +35,7 @@ import com.example.woodometer.utils.NotificationsUtils.showSuccessToast
 import com.example.woodometer.utils.PreferencesUtils
 import com.example.woodometer.viewmodels.KrugViewModel
 import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 
@@ -64,6 +66,9 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
     private lateinit var stablaRecyclerView : RecyclerView
     private lateinit var adapter: TreesAdapter
 
+    //uvek pamtimo pocetno stanje stabla i kasnije uporedjujemo da li se nesto promenilo u programu?
+    private var initialStabloHash : Int = Stablo().hashCode()
+
 
     private lateinit var krugViewModel: KrugViewModel
 
@@ -87,20 +92,32 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
         binding.krugVM = krugViewModel
 
         binding.backButton.setOnClickListener{parentFragmentManager.popBackStack()}
+        binding.saveTreeButton.visibility = View.GONE
+
+        if (!krugViewModel.isRadniKrug()){
+            binding.endCircleButton.visibility = View.GONE
+            binding.addTreeButton.visibility = View.GONE
+        }
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        adapter = TreesAdapter(mutableListOf(),this)
+        initialStabloHash = krugViewModel.getStabloHash()
 
         viewLifecycleOwner.lifecycleScope.launch {
             //Ako postoji bar jedno stablo u krugu, pamtimo njegov hash da bi kada dolazi do menjanja stabala znali da li da cuvamo ili ne
-            krugViewModel.setStablaKruga()
-
-            krugViewModel.stablaKruga.observe(viewLifecycleOwner) { stabla ->
-                adapter.updateData(stabla)
+            if (lastKrug != krugViewModel.trenutniKrug.value?.id){
+                krugViewModel.setStablaKruga()
+                lastKrug = krugViewModel.trenutniKrug.value?.id
+            }else{
+                krugViewModel.setDefaultStablo()
             }
+
+            setMode()
+
+
             // Handle tree type button click
             vrstaButton = binding.vrstaDrvetaButton
             vrstaButton.setOnClickListener {
@@ -137,13 +154,37 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
             binding.endCircleButton.setOnClickListener{
                 endCircleButtonClicked()
             }
-            setupWorkingTreeButtons()
-
             binding.trenutniKrugTextView.text = krugViewModel.trenutniKrug.value?.brKruga.toString()
+
         }
 
 
 
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        lifecycleScope.launch {
+            saveStabloChanges()
+        }
+    }
+
+    private suspend fun saveStabloChanges(){
+        if (initialStabloHash != krugViewModel.getStabloHash()){
+            krugViewModel.updateTrenutnoStablo()
+        }
+
+    }
+    private fun setMode(){
+        val stabla : MutableList<Stablo> = krugViewModel.stablaKruga.value ?: mutableListOf()
+        if (!krugViewModel.isRadniKrug()){ return }
+        if (stabla.isEmpty()){
+            addTreeMode()
+            krugViewModel.setDefaultStablo()
+            initialStabloHash = krugViewModel.getStabloHash()
+        }else{
+            turnOffAddTreeMode()
+        }
     }
 
     companion object {
@@ -165,34 +206,56 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
                 }
             }
     }
-    //Funkcija koja sluzi da sklonimo "zavrsi krug" ako je krug vec zavrsen kao i da se skloni "dodaj krug" dugme ako je krug vec uradjen
-    private fun setupWorkingTreeButtons(){
-        if (krugViewModel.trenutniKrug.value?.id != krugViewModel.radniKrug.value?.id){
-            binding.endCircleButton.visibility = View.GONE
-            binding.addTreeButton.visibility = View.INVISIBLE
-        }
-    }
 
     private fun setupTreesRecyclerView(){
         stablaRecyclerView = binding.treesRecyclerView
         adapter = TreesAdapter(mutableListOf(), this)
         stablaRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         stablaRecyclerView.adapter = adapter
+        krugViewModel.stablaKruga.observe(viewLifecycleOwner) { stabla ->
+            adapter.updateData(stabla)
+        }
     }
 
     private fun addTreeButtonClicked(){
-        krugViewModel.resetStablo()
-        krugViewModel.stablaKruga.value?.let { adapter.updateSelectedStablo(it.lastIndex + 1) }
+        //posto menjamo trenutno stablo cuvamo promene (ako postoje)
+        lifecycleScope.launch {
+            saveStabloChanges()
+            krugViewModel.resetStablo()
+            initialStabloHash = krugViewModel.getStabloHash()
+            addTreeMode()
+        }
     }
 
     private fun saveTreeButtonClicked(){
         if (krugViewModel.trenutnoStablo.value?.hasAnyNonDefaultVal()!!){
-            krugViewModel.updateTrenutnoStablo()
-            showSuccessToast(context,"Sačuvano stablo ${krugViewModel.trenutnoStablo.value?.rbr}")
-            NotificationsUtils.playSound()
+            lifecycleScope.launch {
+                krugViewModel.updateTrenutnoStablo()
+                showSuccessToast(context,"Dodato stablo ${krugViewModel.trenutnoStablo.value?.rbr}")
+                adapter.updateSelectedStablo(krugViewModel.getStabloIndex(krugViewModel.trenutnoStablo.value!!))
+                turnOffAddTreeMode()
+                NotificationsUtils.playSound()
+            }
+
         }else{
             showErrToast(context, "Morate popuniti bar neku vrednost da biste kreirali novo stablo!")
         }
+    }
+
+    private fun addTreeMode(){
+        binding.treesRecyclerView.visibility = View.INVISIBLE
+        binding.saveTreeButton.visibility = View.VISIBLE
+        binding.closeButton.visibility = View.VISIBLE
+        binding.addTreeButton.visibility = View.GONE
+        binding.endCircleButton.visibility = View.GONE
+    }
+
+    private fun turnOffAddTreeMode(){
+        binding.treesRecyclerView.visibility = View.VISIBLE
+        binding.saveTreeButton.visibility = View.GONE
+        binding.closeButton.visibility = View.GONE
+        binding.addTreeButton.visibility = View.VISIBLE
+        binding.endCircleButton.visibility = View.VISIBLE
     }
 
     private fun endCircleButtonClicked(){
@@ -219,11 +282,6 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
         currentInputField?.setText(input)
     }
 
-
-    override fun onClearPressed() {
-        TODO()
-    }
-
     override fun setTreeType(name: String, key: Int) {
         vrstaButton.text = name
         binding.vrstaTextView.setText(key.toString())
@@ -231,9 +289,13 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
 
     override fun changeTree(stablo : Stablo) {
         if (stablo.id == krugViewModel.trenutnoStablo.value?.id){return}
-        adapter.updateSelectedStablo(krugViewModel.getStabloIndex(stablo))
-        krugViewModel.setTrenutnoStablo(stablo)
-        binding.brojStablaTextView.text = krugViewModel.trenutnoStablo.value?.rbr.toString()
+        lifecycleScope.launch {
+            saveStabloChanges()
+            adapter.updateSelectedStablo(krugViewModel.getStabloIndex(stablo))
+            krugViewModel.setTrenutnoStablo(stablo)
+            initialStabloHash = krugViewModel.getStabloHash()
+            binding.brojStablaTextView.text = krugViewModel.trenutnoStablo.value?.rbr.toString()
+        }
     }
 
     override fun deleteTree(rbr: Int) {
@@ -244,6 +306,7 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
     override fun deleteConfirmed(deleted: Boolean, rbr: Int) {
         if (deleted){
             krugViewModel.deleteStablo(rbr)
+            adapter.updateSelectedStablo(0)
             krugViewModel.setDefaultStablo()
         }
     }

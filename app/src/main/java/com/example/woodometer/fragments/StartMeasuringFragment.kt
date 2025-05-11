@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.woodometer.R
 import com.example.woodometer.activities.MainActivity
 import com.example.woodometer.adapters.CircleAdapter
+import com.example.woodometer.adapters.TreesAdapter
 import com.example.woodometer.databinding.FragmentStartMeasuringBinding
 import com.example.woodometer.interfaces.AddOptionListener
 import com.example.woodometer.interfaces.CircleListener
@@ -30,6 +31,7 @@ import com.example.woodometer.model.enumerations.KeyboardField
 import com.example.woodometer.model.enumerations.ListOptionsField
 import com.example.woodometer.utils.ExportDataUtils
 import com.example.woodometer.utils.ExportJsonUtils
+import com.example.woodometer.utils.GlobalUtils.lastDokument
 import com.example.woodometer.utils.KeyboardUtils
 import com.example.woodometer.utils.NotificationsUtils.showErrToast
 import com.example.woodometer.utils.NotificationsUtils.showSuccessToast
@@ -110,12 +112,11 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupCirclesRecyclerView()
-        lifecycleScope.launch {
-            dokumentVM.krugovi.observe(viewLifecycleOwner) {krugovi ->
-                adapter.updateData(krugovi)
+        viewLifecycleOwner.lifecycleScope.launch {
+            if (lastDokument != dokumentVM.trenutniDokument.value?.id){
+                dokumentVM.getKrugovi()
+                lastDokument = dokumentVM.trenutniDokument.value?.id
             }
-            dokumentVM.getKrugovi()
 
             val krugButton = view.findViewById<Button>(R.id.krugoviButton)
 
@@ -136,7 +137,7 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
             binding.izvozTxtButton.setOnClickListener(){
                 izvozTxtClicked()
             }
-
+            setupCirclesRecyclerView()
             setupInputListeners()
             //stavljanje imena dokumenta itd itd
             setupMetaData()
@@ -146,11 +147,14 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
 
     override fun onDestroyView() {
         super.onDestroyView()
-        lifecycleScope.launch {
-            dokumentVM.existsAndSame { result ->
-                if (!result && !dokumentVM.trenutniDokument.value?.hasAnyDefaultVal()!!) {dokumentVM.add()}
+        dokumentVM.existsAndSame { result ->
+            lifecycleScope.launch {
+                if (!result && !dokumentVM.trenutniDokument.value?.hasAnyDefaultVal()!!) {
+                    dokumentVM.add()
+                }
             }
         }
+
     }
     companion object {
         /**
@@ -255,6 +259,9 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
         adapter = CircleAdapter(mutableListOf(),this)
         recyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         recyclerView.adapter = adapter
+        dokumentVM.krugovi.observe(viewLifecycleOwner) { krugovi ->
+            adapter.updateData(krugovi)
+        }
     }
     //meta data o dokumentu
     private fun setupMetaData(){
@@ -296,11 +303,6 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
 
     override fun onEnterPressed(input: String) {
         KeyboardUtils.currentInputField?.setText(input)
-    }
-
-
-    override fun onClearPressed() {
-        KeyboardUtils.currentInputField?.setText("")
     }
 
     override fun addOption(option : String) {

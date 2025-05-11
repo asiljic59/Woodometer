@@ -8,7 +8,9 @@ import android.view.ViewGroup
 import android.widget.Button
 import androidx.fragment.app.replace
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.example.woodometer.R
+import com.example.woodometer.adapters.CircleAdapter
 import com.example.woodometer.utils.PreferencesUtils
 import com.example.woodometer.viewmodels.DokumentViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -68,12 +70,11 @@ class HomeScreenFragment : Fragment() {
     }
 
     private fun startMerenjaButtonClicked() {
-        CoroutineScope(Dispatchers.Main).launch {
-
-            val oldID = dokumentVM.trenutniDokument.value?.id!!
+        val oldID = dokumentVM.trenutniDokument.value?.id!!
+        lifecycleScope.launch {
             dokumentVM.getNewest()
             if (dokumentVM.trenutniDokument.value!!.id != oldID){
-                dokumentVM.refreshData()
+                dokumentVM.getKrugovi()
             }
             // Create the fragment
             val fragment = StartMeasuringFragment()
@@ -83,6 +84,7 @@ class HomeScreenFragment : Fragment() {
                 .replace(R.id.main, fragment)
                 .addToBackStack(null)
                 .commit()
+
         }
     }
 

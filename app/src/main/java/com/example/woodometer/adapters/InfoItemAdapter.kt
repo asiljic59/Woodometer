@@ -14,6 +14,7 @@ class InfoItemAdapter(private val items : List<Pair<Int,String>>,private val lis
 
     class NumberViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val infoTextView = itemView.findViewById<TextView>(R.id.infoTextView)
+        val numberText = itemView.findViewById<TextView>(R.id.numberTextView)
         val infoCard = itemView.findViewById<MaterialCardView>(R.id.infoCard)
     }
 
@@ -25,7 +26,8 @@ class InfoItemAdapter(private val items : List<Pair<Int,String>>,private val lis
 
     override fun onBindViewHolder(holder: NumberViewHolder, position: Int) {
         val item = items.get(position)
-        "${item.first} - ${item.second}".also { holder.infoTextView.text = it }
+        item.first.toString().also { holder.numberText.text = it }
+        item.second.also { holder.infoTextView.text = it }
         holder.infoCard.setOnClickListener{
             listener.informationPicked(item.first)
         }

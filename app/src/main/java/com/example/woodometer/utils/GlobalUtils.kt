@@ -6,6 +6,7 @@ import java.sql.Timestamp
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 object GlobalUtils {
     const val DISTANCE_UPPER_LIMIT = 12.62
@@ -17,6 +18,9 @@ object GlobalUtils {
 
     const val NAC_ZAPRE = 8
     const val NAC_PRIR = 6
+
+    var lastDokument : UUID? = null
+    var lastKrug : UUID? = null
 
     val  VRSTE_DRVECA = listOf(
         11 to "Bela vrba",      // 11 → Bela vrba

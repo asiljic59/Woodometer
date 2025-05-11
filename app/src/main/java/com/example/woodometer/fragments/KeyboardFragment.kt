@@ -1,7 +1,9 @@
 package com.example.woodometer.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Parcel
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +12,7 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -155,14 +158,27 @@ class KeyboardFragment : Fragment(),InformationItemListener {
 
     }
 
-    private fun openCompass(){
-        val intent = requireActivity().packageManager.getLaunchIntentForPackage("menion.android.locus.gis")
-        if (intent != null) {
-            startActivity(intent)
+    private fun openCompass() {
+        val context = requireContext()
+        val packageName = "menion.android.locus.gis"
+
+        Log.d("MyApp", "Attempting to open Locus GIS")
+
+        val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
+        if (launchIntent != null) {
+            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            try {
+                context.startActivity(launchIntent)
+            } catch (e: Exception) {
+                Log.e("MyApp", "Failed to start Locus GIS", e)
+                Toast.makeText(context, "Failed to launch Locus GIS", Toast.LENGTH_SHORT).show()
+            }
         } else {
-            showErrToast(context, "Locus GIS is not installed")
+            Toast.makeText(context, "Locus GIS is not installed", Toast.LENGTH_SHORT).show()
         }
     }
+
+
 
 
     private fun setUnitTextView(view: View) {
@@ -353,7 +369,8 @@ class KeyboardFragment : Fragment(),InformationItemListener {
         if (!isDecimalValid()) {return  false}
         val number = currentInput.toString().toDouble()
         if (number < GlobalUtils.DIAMETER_LOWER_LIMIT){
-            NotificationsUtils.showErrToast(context,"Prečnik ne sme biti manji od 10cm!")
+            showErrToast(context,"Prečnik ne sme biti manji od 10cm!")
+            return false
         }
         return true
     }
@@ -363,10 +380,10 @@ class KeyboardFragment : Fragment(),InformationItemListener {
         val number = currentInput.toString().toDouble()
         val precnik = krugViewModel.trenutnoStablo.value?.precnik!!
         if (number > GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30 && precnik != 0f && precnik <= DIAMETER_HEIGHT_LIMIT) {
-            NotificationsUtils.showErrToast(requireContext(), "Za prečnik manji od 30cm razdaljina mora biti ispod ${GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30}")
+            showErrToast(requireContext(), "Za prečnik manji od 30cm razdaljina mora biti ispod ${GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30}")
             return false
         } else if (number > GlobalUtils.DISTANCE_UPPER_LIMIT) {
-            NotificationsUtils.showErrToast(requireContext(), "Razdaljina ne sme biti veća od ${GlobalUtils.DISTANCE_UPPER_LIMIT}")
+            showErrToast(requireContext(), "Razdaljina ne sme biti veća od ${GlobalUtils.DISTANCE_UPPER_LIMIT}")
             return false
         }
         return true
@@ -389,11 +406,11 @@ class KeyboardFragment : Fragment(),InformationItemListener {
         if (!isInt()){return false;}
         val krug  = krugViewModel.trenutnoStablo.value
         if (field == KeyboardField.VISINA){
-            if(currentInput.toString().toInt() < krug?.duzDebla!!){
+            if(krug?.duzDebla!=0 && currentInput.toString().toInt() < krug?.duzDebla!!){
                 NotificationsUtils.showErrToast(context,"Visina ne sme biti manja od dužine debla")
                 return false
             }
-        }else if (field == KeyboardField.DUZINA_DEBLA){
+        }else if (krug?.visina != 0 && field == KeyboardField.DUZINA_DEBLA){
             if (currentInput.toString().toInt() > krug?.visina!!){
                 NotificationsUtils.showErrToast(context,"Dužina debla ne sme biti veća od visine")
                 return false

@@ -17,7 +17,7 @@ import java.util.UUID
 data class MrtvoStablo (
     @PrimaryKey
     var id : UUID = UUID.randomUUID(),
-    var vrsta: Int = 11,
+    var vrsta: Int = 61,
     var polozaj: Int = 0,
     var precnik: Float = 0f,
     var visina: Int = 0,

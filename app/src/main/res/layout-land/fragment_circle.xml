@@ -687,6 +687,22 @@
             app:layout_constraintStart_toStartOf="parent">
 
             <ImageButton
+                android:id="@+id/closeButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="19dp"
+                android:layout_marginEnd="25dp"
+                android:background="@android:color/transparent"
+                android:scaleX="0.8"
+                android:scaleY="0.8"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/saveTreeButton"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/outline_close_24" />
+
+            <ImageButton
                 android:id="@+id/saveTreeButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -694,6 +710,7 @@
                 android:background="@android:color/transparent"
                 android:scaleX="0.8"
                 android:scaleY="0.8"
+                android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/addTreeButton"
                 app:layout_constraintTop_toTopOf="parent"

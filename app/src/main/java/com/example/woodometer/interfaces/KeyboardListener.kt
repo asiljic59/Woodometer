@@ -5,5 +5,4 @@ package com.example.woodometer.interfaces
 //Sluzi za efikasno koriscenje virtualne tastature
 interface KeyboardListener {
     fun onEnterPressed (input: String)
-    fun onClearPressed()
 }

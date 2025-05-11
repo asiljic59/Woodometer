@@ -1,26 +1,34 @@
 package com.example.woodometer.activities
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.provider.Settings
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.example.woodometer.R
 import com.example.woodometer.fragments.HomeScreenFragment
 import com.example.woodometer.interfaces.CircleListener
 import com.example.woodometer.interfaces.TreeListener
+import com.example.woodometer.services.FloatingService
+import com.example.woodometer.utils.GlobalUtils.lastDokument
+import com.example.woodometer.utils.GlobalUtils.lastKrug
 import com.example.woodometer.utils.NotificationsUtils
 import com.example.woodometer.utils.PreferencesUtils
 import com.example.woodometer.viewmodels.DokumentViewModel
 import com.example.woodometer.viewmodels.KrugViewModel
+import kotlinx.coroutines.launch
 import java.util.UUID
 
 
@@ -37,6 +45,11 @@ class MainActivity : AppCompatActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
 
         adjustScreen()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
+            startActivityForResult(intent, 1234)
+            return
+        }
         val krugVM  = ViewModelProvider(this)[KrugViewModel::class.java]
 
         //trazenje radnog kruga, ako postoji takav
@@ -47,17 +60,48 @@ class MainActivity : AppCompatActivity() {
 
         //skupljanje podataka o dokumentima pri pokretanju!
         val dokumentVM = ViewModelProvider(this)[DokumentViewModel::class.java]
-        dokumentVM.refreshData()
-
-        supportFragmentManager.beginTransaction().replace(R.id.main, HomeScreenFragment()).commit()
-
-        if (krugVM.radniKrug.value != null){
-            krugVM.setTrenutniKrug(krugVM.radniKrug.value!!)
-            krugVM.setStablaKruga()
+        lifecycleScope.launch {
+            dokumentVM.refreshData()
+            lastDokument = dokumentVM.trenutniDokument.value?.id
+            if (krugVM.radniKrug.value != null){
+                krugVM.setTrenutniKrug(krugVM.radniKrug.value!!)
+                lastKrug = krugVM.trenutniKrug.value?.id
+                krugVM.setStablaKruga()
+            }
         }
 
+        supportFragmentManager.beginTransaction().replace(R.id.main, HomeScreenFragment()).commit()
+    }
+    //START I FINISH SERVISA (FLOATING BUTTON)
+    override fun onResume() {
+        super.onResume()
+        stopService(Intent(this, FloatingService::class.java))
+    }
+    override fun onPause() {
+        super.onPause()
+        startFloatingService()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopService(Intent(this,FloatingService::class.java))
+    }
+
+    private fun isServiceRunning(serviceClass: Class<*>): Boolean {
+        val manager = getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+        return manager.getRunningServices(Int.MAX_VALUE).any { it.service.className == serviceClass.name }
+    }
+
+    private fun startFloatingService() {
+        val intent = Intent(this, FloatingService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent) // Required for Android 8.0+
+        } else {
+            startService(intent)
+        }
 
     }
+
     override fun attachBaseContext(newBase: Context) {
         if (isTrimbleDevice()) {
             val resources = newBase.resources
@@ -136,7 +180,7 @@ class MainActivity : AppCompatActivity() {
         val builder = AlertDialog.Builder(this)
         builder.setMessage("Da li ste sigurni da želite da obrišete krug $rbr?")
             .setPositiveButton("Yes") { dialog, id ->
-                NotificationsUtils.showSuccessToast(this,"Stablo $rbr obrisano.")
+                NotificationsUtils.showSuccessToast(this,"Krug $rbr obrisan.")
                 onDelete()
             }
             .setNegativeButton("No") { dialog, id ->

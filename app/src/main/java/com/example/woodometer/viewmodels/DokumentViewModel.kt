@@ -40,23 +40,26 @@ class DokumentViewModel : ViewModel() {
         _trenutniDokument.postValue(dokument)
     }
 
-    fun refreshData() {
+    suspend fun refreshData() {
         getNewest()
         getAll()
         getKrugovi()
+
     }
 
-    fun getKrugovi() {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                val krugovi = _trenutniDokument.value?.let {
-                    krugRepository.getByDokument(it.id).sortedBy { it.brKruga }.toMutableList()
-                }
-                _krugovi.postValue(krugovi)
+    suspend fun getKrugovi() {
+        val krugovi = withContext(Dispatchers.IO) {
+            _trenutniDokument.value?.let {
+                krugRepository.getByDokument(it.id).sortedBy { it.brKruga }.toMutableList()
             }
         }
-
+        _krugovi.value = krugovi
     }
+
+    fun addKrug(krug: Krug){
+        _krugovi.value?.add(krug)
+    }
+
 
     suspend fun isEmpty() : Boolean{
         return withContext(Dispatchers.IO) {
@@ -64,13 +67,12 @@ class DokumentViewModel : ViewModel() {
         }
     }
 
-    fun getNewest(){
-        viewModelScope.launch {
-            val dokument = withContext(Dispatchers.IO) {
-                dokumentRepository.getNewest()
-            }
-            _trenutniDokument.postValue(dokument ?: Dokument())
+    suspend fun getNewest(){
+        val dokument = withContext(Dispatchers.IO) {
+            dokumentRepository.getNewest() ?: Dokument()
         }
+        _trenutniDokument.value = dokument
+
     }
 
     fun getAll (){
@@ -99,30 +101,32 @@ class DokumentViewModel : ViewModel() {
         }
     }
 
-    fun add(){
-        viewModelScope.launch {
-            withContext(Dispatchers.IO){
-                trenutniDokument.value?.let {
-                    dokumentRepository.add(it)
-                    val newDoc = trenutniDokument.value!!
-                    _dokumenti.postValue(
-                        (_dokumenti.value.orEmpty()
-                            .map { if (it.id == newDoc.id) newDoc else it } // Replace if exists
-                            .takeIf { list -> list.any { it.id == newDoc.id } }?.toMutableList()
-                            ?: (_dokumenti.value.orEmpty() + newDoc)).toMutableList()
-                    )// Add if doesn't exist
-                }
-            }
+    suspend fun add() = withContext(Dispatchers.IO) {
+        val current = trenutniDokument.value ?: return@withContext
+        dokumentRepository.add(current)
+
+        val newDoc = trenutniDokument.value ?: return@withContext
+        val currentList = _dokumenti.value.orEmpty()
+
+        val updatedList = if (currentList.any { it.id == newDoc.id }) {
+            currentList.map { if (it.id == newDoc.id) newDoc else it }.toMutableList()
+        } else {
+            (currentList + newDoc).toMutableList()
         }
+
+        // Post back to LiveData safely from background thread
+        _dokumenti.postValue(updatedList)
     }
 
-    fun delete(){
+
+
+    fun delete(dokument: Dokument){
         viewModelScope.launch {
             withContext(Dispatchers.IO){
-                val newDocs = _dokumenti.value!!
-                newDocs.remove(trenutniDokument.value)
-                _dokumenti.postValue(newDocs)
-                dokumentRepository.delete(trenutniDokument.value!!)
+                val currentList = _dokumenti.value.orEmpty().toMutableList()
+                currentList.removeIf { it.id == dokument.id }
+                _dokumenti.postValue(currentList)
+                dokumentRepository.delete(dokument)
             }
         }
     }

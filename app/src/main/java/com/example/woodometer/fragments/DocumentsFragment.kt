@@ -101,7 +101,6 @@ class DocumentsFragment : Fragment(), DocumentsListener {
     override fun docClicked(dokument: Dokument) {
         if (dokument.id != dokumentiViewModel.trenutniDokument.value?.id!!){
             dokumentiViewModel.setTrenuntniDokument(dokument)
-            dokumentiViewModel.getKrugovi()
         }
         //ne dozvoljavamo da se menjaju podaci vec postojeceg, upisanog dokumenta!!!
 
@@ -111,7 +110,7 @@ class DocumentsFragment : Fragment(), DocumentsListener {
 
     override fun docLongClicked(dokument: Dokument) {
         showDeleteConfirmationDialog(dokument, onDelete = {
-            dokumentiViewModel.delete()
+            dokumentiViewModel.delete(dokument)
             //Ako brisemo dokument,radni krug kao i svi se brisu i ne pamti se
             if (dokumentiViewModel.existsKrug(krugVM.radniKrug.value)){
                 PreferencesUtils.clearWorkingCircleFromPrefs(context)

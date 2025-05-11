@@ -119,6 +119,7 @@ class AddCircleFragment : Fragment(), KeyboardListener,SilviculturalTypeListener
                                 PreferencesUtils.saveWorkingCircleToPrefs(context,
                                     it1.id)
                             }
+                            krugVM.trenutniKrug.value?.let { it1 -> dokumentVM.addKrug(it1) }
                             parentFragmentManager.popBackStack()
                             if (isEdit != true){
                                 withContext(Dispatchers.Main) {
@@ -227,10 +228,6 @@ class AddCircleFragment : Fragment(), KeyboardListener,SilviculturalTypeListener
         currentInputField?.setText(input)
     }
 
-
-    override fun onClearPressed() {
-        currentInputField?.setText("")
-    }
 
     override fun setSilviculturalType(key: Int) {
         binding.gazdinskiTipTextView.setText(key.toString())

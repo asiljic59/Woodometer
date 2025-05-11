@@ -36,10 +36,10 @@ class DocumentsAdapter(private var docs : List<Dokument>,private val documentsLi
             holder.numberText.text = formatText(docs[position])
             holder.date.text = formatTimestamp(docs[position].timestamp)
             holder.documentCardView.setOnClickListener{
-                documentsListener.docClicked(docs[position])
+                documentsListener.docClicked(docs[holder.bindingAdapterPosition])
             }
             holder.documentCardView.setOnLongClickListener{
-                documentsListener.docLongClicked(docs[position])
+                documentsListener.docLongClicked(docs[holder.bindingAdapterPosition])
                 true
             }
 
@@ -71,7 +71,7 @@ class DocumentsAdapter(private var docs : List<Dokument>,private val documentsLi
         override fun getNewListSize() = newList.size
 
         override fun areItemsTheSame(oldPos: Int, newPos: Int): Boolean {
-            return oldList[oldPos].timestamp == newList[newPos].timestamp
+            return oldList[oldPos].id== newList[newPos].id
         }
 
         override fun areContentsTheSame(oldPos: Int, newPos: Int): Boolean {

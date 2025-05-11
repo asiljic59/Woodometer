@@ -137,12 +137,11 @@ class AddDeadTreeFragment : Fragment(),KeyboardListener,TreeTypeListener {
             }
             treeTypesFragment.show(parentFragmentManager, null)
         }
-        if (isAddition == false){
-            vrstaButton.text =
-                GlobalUtils.VRSTE_DRVECA.filter { it.first ==
-                    krugVM.mrtvoStablo.value?.vrsta
-                }.first().second
-        }
+        vrstaButton.text =
+            GlobalUtils.VRSTE_DRVECA.filter { it.first ==
+                krugVM.mrtvoStablo.value?.vrsta
+            }.first().second
+
     }
 
     fun isDeadTreeValid() : Boolean{
@@ -152,11 +151,6 @@ class AddDeadTreeFragment : Fragment(),KeyboardListener,TreeTypeListener {
 
     override fun onEnterPressed(input: String) {
         currentInputField?.setText(input)
-    }
-
-
-    override fun onClearPressed() {
-        currentInputField?.setText("")
     }
 
     override fun setTreeType(name: String, key: Int) {
