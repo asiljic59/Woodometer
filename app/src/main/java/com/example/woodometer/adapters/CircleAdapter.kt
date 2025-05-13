@@ -1,5 +1,6 @@
 package com.example.woodometer.adapters
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -39,27 +40,11 @@ class CircleAdapter(private var krugovi : MutableList<Krug>, private val listene
     override fun getItemCount() = krugovi.size
 
     // Update data with DiffUtil for performance
+    @SuppressLint("NotifyDataSetChanged")
     fun updateData(newData: MutableList<Krug>) {
         val sortedData = newData.sortedBy { it.brKruga }
-        val diffResult = DiffUtil.calculateDiff(TreeDiffCallback(krugovi, newData))
         krugovi = sortedData.toMutableList()
-        diffResult.dispatchUpdatesTo(this)
+        notifyDataSetChanged()
     }
 
-    class TreeDiffCallback(
-        private val oldList: List<Krug>,
-        private val newList: List<Krug>
-    ) : DiffUtil.Callback() {
-
-        override fun getOldListSize() = oldList.size
-        override fun getNewListSize() = newList.size
-
-        override fun areItemsTheSame(oldPos: Int, newPos: Int): Boolean {
-            return oldList[oldPos].id == newList[newPos].id
-        }
-
-        override fun areContentsTheSame(oldPos: Int, newPos: Int): Boolean {
-            return oldList[oldPos] == newList[newPos]
-        }
-    }
 }

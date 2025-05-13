@@ -48,9 +48,9 @@ class FloatingService : Service() {
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         )
-        params.gravity = Gravity.TOP or Gravity.END
+        params.gravity = Gravity.CENTER or Gravity.END
         params.x = 10
-        params.y = 250
+        params.y = 400
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !android.provider.Settings.canDrawOverlays(this)) {
             stopSelf()
             return

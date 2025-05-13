@@ -94,7 +94,7 @@ class AddDeadTreeFragment : Fragment(),KeyboardListener,TreeTypeListener {
                 else{krugVM.editMrtvoStablo()}
                 parentFragmentManager.popBackStack()
             } else {
-                NotificationsUtils.showErrToast(context,"Morate uneti sve parametre mrtvog stabla!")
+                NotificationsUtils.showErrToast(context,"Morate uneti položaj i prečnik mrtvog stabla!")
             }
         }
         binding.closeButton2.setOnClickListener{
@@ -146,7 +146,7 @@ class AddDeadTreeFragment : Fragment(),KeyboardListener,TreeTypeListener {
 
     fun isDeadTreeValid() : Boolean{
         val mrtvoStablo = krugVM.mrtvoStablo.value
-        return !mrtvoStablo?.hasAnyDefaultVal()!!
+        return mrtvoStablo?.polozaj != 0 && mrtvoStablo?.precnik != 0f
     }
 
     override fun onEnterPressed(input: String) {

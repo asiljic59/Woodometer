@@ -43,4 +43,17 @@ data class Stablo(
         return azimut != 0 || razdaljina != 0f || precnik != 0f || duzDebla != 0 || visina != 0 ||
                 socStatus != 0 || stepSusenja != 0 || tehKlasa != 0
     }
+    fun isDefault(): Boolean {
+        return vrsta == 61 &&
+                azimut == 0 &&
+                razdaljina == 0f &&
+                precnik == 0f &&
+                visina == 0 &&
+                duzDebla == 0 &&
+                socStatus == 0 &&
+                stepSusenja == 0 &&
+                tehKlasa == 0 &&
+                probDoznaka == 30
+    }
+
 }

@@ -15,6 +15,7 @@ import com.example.woodometer.R
 import com.example.woodometer.interfaces.AddOptionListener
 import com.example.woodometer.model.enumerations.ListOptionsField
 import com.example.woodometer.utils.NotificationsUtils
+import com.example.woodometer.utils.NotificationsUtils.showErrToast
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -81,26 +82,28 @@ class NewOptionFragment : DialogFragment() {
             try{
                 val number = editText.text.toString().toInt()
             }catch(e : NumberFormatException){
-                Toast.makeText(context,"Gazdinska jedinica mora biti broj!", Toast.LENGTH_SHORT).show()
+                showErrToast(context,"Gazdinska jedinica mora biti broj!")
                 return false
             }
-            Toast.makeText(context, "Gazdinska jedinica mora imati tačno 4 cifre!", Toast.LENGTH_SHORT).show()
+            showErrToast(context, "Gazdinska jedinica mora imati tačno 4 cifre!")
             return false
         } else if (field  == ListOptionsField.KORISNIK) {
             try {
                 val number = editText.text.toString().toInt()
             }catch (e : NumberFormatException) {
-                NotificationsUtils.showErrToast(context, "Korisnik mora biti broj")
+                showErrToast(context, "Korisnik mora biti broj")
                 return false
             }
             
         } else if (field == ListOptionsField.ODSEK){
             if (editText.text.toString().length != 1){
-                NotificationsUtils.showErrToast(context,"Odsek mora biti tačno jedno slovo (A-Z)!")
+                showErrToast(context,"Odsek mora biti tačno jedno slovo (A-Z)!")
+                return false
             }else{
                 val char : Char = editText.text.toString()[0]
-                if (char !in 'a'..'z'){
-                    NotificationsUtils.showErrToast(context,"Odsek mora biti slovo u opsegu A-Z!")
+                if (char !in 'a'..'z' && char !in 'A'..'Z'){
+                    showErrToast(context,"Odsek mora biti slovo u opsegu A-Z!")
+                    return false
                 }
             }
         }

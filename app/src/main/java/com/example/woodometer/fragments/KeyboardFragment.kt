@@ -29,6 +29,7 @@ import com.example.woodometer.utils.GlobalUtils.STEPENI_SUSENJA
 import com.example.woodometer.utils.GlobalUtils.TEHNICKE_KLASE
 import com.example.woodometer.utils.NotificationsUtils
 import com.example.woodometer.utils.NotificationsUtils.showErrToast
+import com.example.woodometer.utils.NotificationsUtils.showWarningToast
 import com.example.woodometer.viewmodels.DokumentViewModel
 import com.example.woodometer.viewmodels.KrugViewModel
 import com.google.android.material.button.MaterialButton
@@ -183,8 +184,9 @@ class KeyboardFragment : Fragment(),InformationItemListener {
 
     private fun setUnitTextView(view: View) {
         val measurementUnitTextView = view.findViewById<TextView>(R.id.measurementUnitTextView)
-        if (field == KeyboardField.PRECNIK){measurementUnitTextView.text = "cm"}
-        else if (field in listOf(KeyboardField.VISINA,KeyboardField.DUZINA_DEBLA)){measurementUnitTextView.text = "dm"}
+        if (field in listOf(KeyboardField.PRECNIK,KeyboardField.PRECNIK_MRTVO_STABLO)){measurementUnitTextView.text = "cm"}
+        else if (field in listOf(KeyboardField.VISINA,KeyboardField.DUZINA_DEBLA,KeyboardField.DUZINA)){measurementUnitTextView.text = "dm"}
+        else if (field in listOf(KeyboardField.RAZDALJINA)) {measurementUnitTextView.text = "m"}
     }
 
     private fun setNumberButtons(view: View){
@@ -208,7 +210,6 @@ class KeyboardFragment : Fragment(),InformationItemListener {
 
     private fun saveInput() : Boolean {
         if (isValid()){
-            val measurement = currentInput.ifEmpty { "0" }
             parentFragmentManager.popBackStack()
             return true
         }
@@ -360,6 +361,9 @@ class KeyboardFragment : Fragment(),InformationItemListener {
         }else if (number < DIAMETER_HEIGHT_LIMIT && krugViewModel.trenutnoStablo.value?.razdaljina!! > GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30) {
             NotificationsUtils.showErrToast(requireContext(), "Za prečnik manji od 30cm razdaljina mora biti ispod ${GlobalUtils.DISTANCE_UPPER_LIMIT_UNDER_30}")
             return false
+        }
+        if (number > 100f) {
+            showWarningToast(context,"Prečnik stabla premašuje očekivane granice.")
         }
         return true
     }

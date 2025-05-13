@@ -122,7 +122,6 @@ class SilviculturalTypesFragment : Fragment(),SilviculturalTypeListener {
         val filteredList = GAZ_TIPOVI.filter { (key, _) ->
             key.toString().startsWith(currentInput)
         }
-        if (filteredList.isEmpty()){return}
         adapter.updateData(filteredList)
     }
 

@@ -44,7 +44,6 @@ class DokumentViewModel : ViewModel() {
         getNewest()
         getAll()
         getKrugovi()
-
     }
 
     suspend fun getKrugovi() {
@@ -56,9 +55,20 @@ class DokumentViewModel : ViewModel() {
         _krugovi.value = krugovi
     }
 
-    fun addKrug(krug: Krug){
-        _krugovi.value?.add(krug)
+    fun addKrug(krug: Krug) {
+        val currentList = _krugovi.value ?: return
+
+        val existingIndex = currentList.indexOfFirst { it.id == krug.id }
+
+        if (existingIndex != -1) {
+            currentList[existingIndex] = krug // Replace existing
+        } else {
+            currentList.add(krug) // Add new
+        }
+
+        _krugovi.value = currentList // Trigger observers if LiveData/StateFlow is used
     }
+
 
 
     suspend fun isEmpty() : Boolean{

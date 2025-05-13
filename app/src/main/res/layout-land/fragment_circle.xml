@@ -686,69 +686,62 @@
             app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent">
 
-            <ImageButton
-                android:id="@+id/closeButton"
+            <LinearLayout
+                android:id="@+id/buttonLayout"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="19dp"
-                android:layout_marginEnd="25dp"
-                android:background="@android:color/transparent"
-                android:scaleX="0.8"
-                android:scaleY="0.8"
-                android:visibility="gone"
+                android:layout_height="0dp"
+                android:layout_marginEnd="20dp"
+                android:orientation="horizontal"
+                android:visibility="visible"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/saveTreeButton"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/outline_close_24" />
+                app:layout_constraintTop_toTopOf="parent">
 
-            <ImageButton
-                android:id="@+id/saveTreeButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="19dp"
-                android:background="@android:color/transparent"
-                android:scaleX="0.8"
-                android:scaleY="0.8"
-                android:visibility="gone"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/addTreeButton"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/baseline_save_24" />
+                <ImageButton
+                    android:id="@+id/addTreeButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+                    android:scaleX="0.9"
+                    android:scaleY="0.9"
+                    android:visibility="visible"
+                    app:srcCompat="@drawable/baseline_add_circle_outline_24" />
 
-            <ImageButton
-                android:id="@+id/addTreeButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="25dp"
-                android:background="@android:color/transparent"
-                android:scaleX="0.9"
-                android:scaleY="0.9"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/baseline_add_circle_outline_24" />
+                <ImageButton
+                    android:id="@+id/saveTreeButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+                    android:scaleX="0.8"
+                    android:scaleY="0.8"
+                    app:srcCompat="@drawable/baseline_save_24" />
+
+            </LinearLayout>
 
             <View
-                android:id="@+id/view5"
+                android:id="@+id/view2"
                 android:layout_width="4dp"
                 android:layout_height="match_parent"
-                android:layout_marginEnd="25dp"
+                android:layout_marginEnd="15dp"
                 android:background="#CCCCCC"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/saveTreeButton"
+                app:layout_constraintEnd_toStartOf="@+id/buttonLayout"
+                app:layout_constraintStart_toEndOf="@+id/treesRecyclerView"
                 app:layout_constraintTop_toTopOf="parent" />
+
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/treesRecyclerView"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
+                android:layout_marginEnd="20dp"
+                android:clipToPadding="false"
                 android:orientation="horizontal"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/view5"
+                app:layout_constraintEnd_toStartOf="@+id/view2"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.0" />
+                app:layout_constraintTop_toTopOf="parent" />
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>

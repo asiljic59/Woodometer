@@ -72,6 +72,8 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
 
     private lateinit var krugViewModel: KrugViewModel
 
+    private var addTreeMode : Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -91,7 +93,9 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
         _binding!!.lifecycleOwner = viewLifecycleOwner
         binding.krugVM = krugViewModel
 
-        binding.backButton.setOnClickListener{parentFragmentManager.popBackStack()}
+        binding.backButton.setOnClickListener{
+            backButtonClicked()
+        }
         binding.saveTreeButton.visibility = View.GONE
 
         if (!krugViewModel.isRadniKrug()){
@@ -170,6 +174,8 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
     }
 
     private suspend fun saveStabloChanges(){
+        val stablo = krugViewModel.trenutnoStablo.value
+        if (stablo == null || stablo.isDefault()) {return}
         if (initialStabloHash != krugViewModel.getStabloHash()){
             krugViewModel.updateTrenutnoStablo()
         }
@@ -217,6 +223,16 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
         }
     }
 
+    private fun backButtonClicked(){
+        if (addTreeMode){
+            turnOffAddTreeMode()
+            krugViewModel.setDefaultStablo()
+            adapter.updateSelectedStablo(0)
+        }else{
+            parentFragmentManager.popBackStack()
+        }
+    }
+
     private fun addTreeButtonClicked(){
         //posto menjamo trenutno stablo cuvamo promene (ako postoje)
         lifecycleScope.launch {
@@ -245,21 +261,23 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
     private fun addTreeMode(){
         binding.treesRecyclerView.visibility = View.INVISIBLE
         binding.saveTreeButton.visibility = View.VISIBLE
-        binding.closeButton.visibility = View.VISIBLE
         binding.addTreeButton.visibility = View.GONE
         binding.endCircleButton.visibility = View.GONE
+        addTreeMode = true
     }
 
     private fun turnOffAddTreeMode(){
         binding.treesRecyclerView.visibility = View.VISIBLE
         binding.saveTreeButton.visibility = View.GONE
-        binding.closeButton.visibility = View.GONE
         binding.addTreeButton.visibility = View.VISIBLE
         binding.endCircleButton.visibility = View.VISIBLE
+        addTreeMode = false
     }
 
     private fun endCircleButtonClicked(){
-        (activity as MainActivity).showEndCircleDialog(this,krugViewModel.radniKrug.value!!.brKruga,"Da li ste sigurni da želite da završite krug broj ${krugViewModel.radniKrug.value!!.brKruga}")
+        (activity as MainActivity).showEndCircleDialog(
+            krugViewModel.radniKrug.value!!.brKruga,
+            "Da li ste sigurni da želite da završite krug broj ${krugViewModel.radniKrug.value!!.brKruga} ?"){rbr -> finishConfirmed(rbr)}
     }
 
     private fun createKeyboardHashMap() {
@@ -304,10 +322,14 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
     }
 
     override fun deleteConfirmed(deleted: Boolean, rbr: Int) {
-        if (deleted){
-            krugViewModel.deleteStablo(rbr)
-            adapter.updateSelectedStablo(0)
-            krugViewModel.setDefaultStablo()
+        lifecycleScope.launch {
+            if (deleted){
+                krugViewModel.deleteStablo(rbr)
+                krugViewModel.setDefaultStablo()
+                adapter.updateSelectedStablo(0)
+                setMode()
+                krugViewModel.setDefaultStablo()
+            }
         }
     }
 
@@ -319,19 +341,23 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
         TODO("Not yet implemented")
     }
 
-    override fun finishConfirmed(finish: Boolean, rbr: Int) {
-        if (!finish) {return}
+    private fun finishConfirmed(rbr: Int) {
         val invalidStabla = krugViewModel.areStablaValid(krugViewModel.stablaKruga.value!!)
-        val isValid = invalidStabla.isEmpty()
+        val invalidMrtvaStabla = krugViewModel.areMrtvaStablaValid(krugViewModel.trenutnaMrtvaStabla.value!!)
+        val isValid = invalidStabla.isEmpty() && invalidMrtvaStabla.isEmpty()
         if (krugViewModel.stablaKruga.value?.isEmpty() == true){
             showErrToast(context,"Radni krug nema nijedno stablo!")
             return
         }
         if (!isValid){
-            showErrToast(context,"Stabla broj ${invalidStabla.joinToString(",") } su invalidna! ")
+            if (invalidStabla.isNotEmpty()){
+                showErrToast(context,"Stabla broj ${invalidStabla.joinToString(",") } su invalidna! ")
+            }
+            if (invalidMrtvaStabla.isNotEmpty()){
+                showErrToast(context,"Mrtva stabla broj ${invalidMrtvaStabla.joinToString(",") } su invalidna! ")
+            }
             return
-        }
-        if (finish){
+        }else{
             showSuccessToast(context, "Završen krug broj $rbr.")
             PreferencesUtils.clearWorkingCircleFromPrefs(context)
             krugViewModel.setDefaultRadniKrug()

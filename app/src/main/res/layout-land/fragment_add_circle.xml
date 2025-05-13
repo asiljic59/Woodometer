@@ -27,6 +27,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="right|top"
                 android:backgroundTint="@android:color/transparent"
+                android:scaleX="0.8"
+                android:scaleY="0.8"
                 app:srcCompat="@drawable/outline_close_24" />
 
             <ScrollView
@@ -388,6 +390,7 @@
                 android:layout_height="50dp"
                 android:layout_gravity="center"
                 android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
                 android:backgroundTint="@color/forest_green"
                 android:text="KREIRAJ"
                 app:cornerRadius="0dp"

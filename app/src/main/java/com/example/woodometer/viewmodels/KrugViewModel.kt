@@ -69,7 +69,11 @@
 
         suspend fun updateTrenutnoStablo() {
             withContext(Dispatchers.IO){
-                _trenutnoStablo.value?.let { stabloRepository.upsert(it) }
+                _trenutnoStablo.value?.let {
+                    if (!it.isDefault()){
+                        stabloRepository.upsert(it)
+                    }
+                }
             }
             updateStablaKruga()
         }
@@ -80,21 +84,21 @@
 
 
         fun resetStablo() {
-            viewModelScope.launch {
-                val vrsta = trenutnoStablo.value?.vrsta!!
-                val stablaList = _stablaKruga.value ?: emptyList()
-                val rbr = stablaList.maxOfOrNull { it.rbr } ?: 0
-                _trenutnoStablo.value  = _trenutniKrug.value?.id?.let { Stablo(rbr = rbr+1, krugId = it, vrsta = vrsta) }
-            }
+            val vrsta = trenutnoStablo.value?.vrsta!!
+            val stablaList = _stablaKruga.value ?: emptyList()
+            val rbr = stablaList.maxOfOrNull { it.rbr } ?: 0
+            _trenutnoStablo.value  = _trenutniKrug.value?.id?.let { Stablo(rbr = rbr+1, krugId = it, vrsta = vrsta) }
         }
-        fun deleteStablo(rbr: Int) {
-            viewModelScope.launch {
-                withContext(Dispatchers.IO){
-                    val stablo = stablaKruga.value?.find { it.rbr == rbr }
-                    stabloRepository.delete(stablo!!)
-                    val updatedList = stablaKruga.value
-                    updatedList?.removeAll{it.rbr == rbr}
-                    _stablaKruga.postValue(updatedList)
+        suspend fun deleteStablo(rbr: Int) {
+            withContext(Dispatchers.IO) {
+                val stablo = stablaKruga.value?.find { it.rbr == rbr }
+                stabloRepository.delete(stablo!!)
+
+                val updatedList = stablaKruga.value?.toMutableList()
+                updatedList?.removeAll { it.rbr == rbr }
+
+                withContext(Dispatchers.Main) {
+                    _stablaKruga.value = updatedList
                 }
             }
         }
@@ -181,14 +185,15 @@
             _trenutniKrug.value?.dokumentId = dokumentId
             _radniKrug.value = _trenutniKrug.value
             addKrug()
-            _stablaKruga.postValue(mutableListOf())
-            _trenutnoStablo.postValue(Stablo(krugId = _trenutniKrug.value?.id!!))
-            _trenutnoMrtvoStablo.postValue(MrtvoStablo(krugId = _trenutniKrug.value?.id!!))
-            _trenutnaMrtvaStabla.postValue(mutableListOf())
-            _biodiverzitet.postValue(Biodiverzitet(krugId = _trenutniKrug.value?.id!!))
+            _stablaKruga.value = mutableListOf()
+            _trenutnoStablo.value = Stablo(krugId = _trenutniKrug.value?.id!!)
+            _trenutnoMrtvoStablo.value = MrtvoStablo(krugId = _trenutniKrug.value?.id!!)
+            _trenutnaMrtvaStabla.value = mutableListOf()
+            _biodiverzitet.value = Biodiverzitet(krugId = _trenutniKrug.value?.id!!)
+
         }
 
-        private fun addKrug() {
+        fun addKrug() {
             viewModelScope.launch {
                 withContext(Dispatchers.IO){
                     _trenutniKrug.value?.let { krugRepository.add(it) }
@@ -265,12 +270,16 @@
             }
         }
 
-        suspend fun isKrugValid(): Pair<Boolean, List<Int>> {
+        suspend fun isKrugValid(): Triple<Boolean, List<Int>,List<Int>> {
             val radniKrugStabla = withContext(Dispatchers.IO) {
                 radniKrug.value?.let { stabloRepository.getByKrug(it.id) } ?: emptyList()
             }
+            val radniKrugMrtvaStabla = withContext(Dispatchers.IO){
+                radniKrug.value?.let {mrtvoStabloRepository.getByKrug(it.id)} ?: emptyList()
+            }
             val invalidStabla = areStablaValid(radniKrugStabla)
-            return Pair(invalidStabla.isEmpty(), invalidStabla)
+            val invalidMrtvaStabla = areMrtvaStablaValid(radniKrugMrtvaStabla.toMutableList())
+            return Triple(invalidStabla.isEmpty(), invalidStabla,invalidMrtvaStabla)
         }
 
         //provera da li su SVA stabla kruga validna!
@@ -283,6 +292,15 @@
                 }
             }
             return invalidStabla
+        }
+        fun areMrtvaStablaValid(stabla: MutableList<MrtvoStablo>): List<Int> {
+            val invalidMrtvaStabla : MutableList<Int> = mutableListOf()
+            stabla.forEach{stablo ->
+                if (stablo.hasAnyDefaultVal()){
+                    invalidMrtvaStabla.add(stablo.rbr)
+                }
+            }
+            return invalidMrtvaStabla
         }
 
         fun setDefaultStablo() {
@@ -302,6 +320,8 @@
         fun isRadniKrug(): Boolean {
             return trenutniKrug.value?.id == radniKrug.value?.id
         }
+
+
 
 
     }

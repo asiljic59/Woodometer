@@ -69,6 +69,8 @@ class HomeScreenFragment : Fragment() {
         return view;
     }
 
+
+
     private fun startMerenjaButtonClicked() {
         val oldID = dokumentVM.trenutniDokument.value?.id!!
         lifecycleScope.launch {

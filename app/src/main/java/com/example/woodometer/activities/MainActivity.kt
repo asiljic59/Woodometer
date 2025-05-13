@@ -10,6 +10,8 @@ import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.provider.Settings
+import android.util.Log
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -33,37 +35,37 @@ import java.util.UUID
 
 
 class MainActivity : AppCompatActivity() {
+
+    private var stopService : Boolean = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        val mainView = findViewById<View?>(R.id.main)
+        ViewCompat.setOnApplyWindowInsetsListener(mainView) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
 
-        adjustScreen()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
             val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
             startActivityForResult(intent, 1234)
             return
         }
-        val krugVM  = ViewModelProvider(this)[KrugViewModel::class.java]
 
-        //trazenje radnog kruga, ako postoji takav
-        val id :  String? = PreferencesUtils.getWorkingCircleFromPrefs(this)
-        if (id != ""){
+        val krugVM = ViewModelProvider(this)[KrugViewModel::class.java]
+        val id: String? = PreferencesUtils.getWorkingCircleFromPrefs(this)
+        if (!id.isNullOrEmpty()) {
             krugVM.setRadniKrug(UUID.fromString(id))
         }
 
-        //skupljanje podataka o dokumentima pri pokretanju!
         val dokumentVM = ViewModelProvider(this)[DokumentViewModel::class.java]
         lifecycleScope.launch {
             dokumentVM.refreshData()
-            lastDokument = dokumentVM.trenutniDokument.value?.id
-            if (krugVM.radniKrug.value != null){
+            lastDokument = null
+            if (krugVM.radniKrug.value != null) {
                 krugVM.setTrenutniKrug(krugVM.radniKrug.value!!)
                 lastKrug = krugVM.trenutniKrug.value?.id
                 krugVM.setStablaKruga()
@@ -72,25 +74,22 @@ class MainActivity : AppCompatActivity() {
 
         supportFragmentManager.beginTransaction().replace(R.id.main, HomeScreenFragment()).commit()
     }
-    //START I FINISH SERVISA (FLOATING BUTTON)
+
     override fun onResume() {
         super.onResume()
         stopService(Intent(this, FloatingService::class.java))
     }
+
     override fun onPause() {
         super.onPause()
-        startFloatingService()
+        startService(Intent(this, FloatingService::class.java))
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        stopService(Intent(this,FloatingService::class.java))
+        stopService(Intent(this, FloatingService::class.java))
     }
 
-    private fun isServiceRunning(serviceClass: Class<*>): Boolean {
-        val manager = getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
-        return manager.getRunningServices(Int.MAX_VALUE).any { it.service.className == serviceClass.name }
-    }
 
     private fun startFloatingService() {
         val intent = Intent(this, FloatingService::class.java)
@@ -121,9 +120,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun adjustScreen() {
-    }
-
     fun showDeleteConfirmationDialog(listener : TreeListener,rbr : Int){
         val builder = AlertDialog.Builder(this)
         builder.setMessage("Da li ste sigurni da želite da obrišete stablo $rbr?")
@@ -140,15 +136,18 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    fun showEndCircleDialog(listener: CircleListener,rbr : Int,message: String){
+    fun showEndCircleDialog(
+        rbr: Int,
+        message: String,
+        onResult: (rbr: Int) -> Unit
+    ) {
         val builder = AlertDialog.Builder(this)
         builder.setMessage(message)
-            .setPositiveButton("Yes") { dialog, id ->
-                listener.finishConfirmed(true,rbr)
+            .setPositiveButton("Yes") { _, _ ->
+                onResult(rbr)
             }
-            .setNegativeButton("No") { dialog, id ->
-                dialog.dismiss()  // Just close the dialog if user cancels
-                listener.finishConfirmed(false,rbr)
+            .setNegativeButton("No") { dialog, _ ->
+                dialog.dismiss()
             }
 
         val dialog = builder.create()

@@ -1,8 +1,12 @@
 package com.example.woodometer.fragments
 
+import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +14,7 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.replace
@@ -132,6 +137,7 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
             binding.noviDokumentButton.setOnClickListener{
                 dokumentVM.setTrenuntniDokument(Dokument())
                 dokumentVM.setTrenutniKrugovi(mutableListOf())
+                lastDokument = null
                 setupMetaData()
             }
             binding.izvozTxtButton.setOnClickListener(){
@@ -188,18 +194,20 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
             val file = ExportDataUtils.exportDocument(dokumentVM.trenutniDokument.value!!,dokumentVM.krugovi.value!!,activity)
             val jsonFile = ExportJsonUtils.exportToJson(dokumentVM.trenutniDokument.value!!,dokumentVM.krugovi.value!!,activity)
             withContext(Dispatchers.Main) {
+                context?.packageName?.let { Log.d("PACKAGE", it) }
                 val fileUri = context?.let {
                     FileProvider.getUriForFile(
                         it,
-                        "${activity?.packageName}.provider",
+                        "${it.packageName}.provider",
                         file
                     )
                 }
 
+
                 val fileJsonUri = context?.let {
                     FileProvider.getUriForFile(
                         it,
-                        "${activity?.packageName}.provider",
+                        "${it.packageName}.provider",
                         jsonFile
                     )
                 }
@@ -208,12 +216,9 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
                 fileUri?.let { uris.add(it) }
                 fileJsonUri?.let { uris.add(it) }
 
-                val shareIntent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
-                    type = "*/*"
-                    putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                }
-                startActivity(Intent.createChooser(shareIntent, "Send file to..."))
+                ShareBottomSheetFragment
+                    .newInstance(uris)
+                    .show(parentFragmentManager, "ShareBottomSheet")
             }
         }
 
@@ -231,7 +236,7 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
         )
         //OVA 3 IZNAD IZLAZE OPCIJE
         KeyboardUtils.setupInputKeyboardClickListeners(keyboardTextViews,parentFragmentManager,this@StartMeasuringFragment)
-        setupOptionsClickListener()
+        setupOptionsClickListeners()
     }
 
     private fun addCircleClicked(){
@@ -243,8 +248,9 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
             krugVM.setTrenutniKrug(Krug(dokumentId = dokumentVM.trenutniDokument.value?.id!!))
             parentFragmentManager.beginTransaction().add(R.id.main,AddCircleFragment()).addToBackStack(null).commit()
         }else{
-            (activity as MainActivity).showEndCircleDialog(this,krugVM.radniKrug.value!!.brKruga,"Krug broj ${krugVM.radniKrug.value!!.brKruga} nije zavšen. Da li želite završiti trenutni radni krug?")
-            (activity as MainActivity).showEndCircleDialog(this,krugVM.radniKrug.value!!.brKruga,"Krug broj ${krugVM.radniKrug.value!!.brKruga} nije zavšen. Da li želite završiti trenutni radni krug?")
+            (activity as MainActivity).showEndCircleDialog(
+                krugVM.radniKrug.value!!.brKruga,
+                "Krug ${krugVM.radniKrug.value!!.brKruga} nije završen!\nDa li želite završiti trenutni radni krug?"){rbr -> finishConfirmed(rbr)}
         }
     }
 
@@ -279,15 +285,30 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
     }
 
 
-    private fun setupOptionsClickListener(){
-        optionsTextViews.keys.forEach{ layout ->
-            layout.setOnClickListener(){
-                currentOptionField = optionsTextViews[layout]?.first!!
-                currentOptionsFile = optionsTextViews[layout]?.second!!
-                openOptions(layout)
+    @SuppressLint("ClickableViewAccessibility")
+    fun setupOptionsClickListeners() {
+        optionsTextViews.forEach { (layout, pair) ->
+            val inputView = pair.first
+            var clicked = false
+
+            layout.setOnClickListener {
+                if (!clicked) {
+                    clicked = true
+                    currentOptionField = pair.first
+                    currentOptionsFile = pair.second
+                    openOptions(layout)
+
+                    layout.postDelayed({ clicked = false }, 200)
+                }
+            }
+
+            inputView.setOnTouchListener { _, _ ->
+                layout.performClick()
+                true
             }
         }
     }
+
 
     fun openOptions(layout: ConstraintLayout){
         val options : List<String> = getListFromPrefs(currentOptionsFile,context)
@@ -324,24 +345,23 @@ class StartMeasuringFragment : Fragment(), KeyboardListener,AddOptionListener,Ci
         parentFragmentManager.beginTransaction().setReorderingAllowed(true).replace(R.id.main,CircleFragment()).addToBackStack(null).commit()
     }
 
-    override fun finishConfirmed(finish: Boolean, rbr: Int) {
-        if (!finish){return}
+    private fun finishConfirmed(rbr: Int) {
         lifecycleScope.launch {
-            val (isValid, invalidList) = krugVM.isKrugValid()
+            val (isValid, invalidList, invalidMrtvaList) = krugVM.isKrugValid()
             if (!isValid) {
-                showErrToast(context, "Stabla broj ${invalidList.joinToString(",")} su invalidna!")
-                return@launch
-            }
-            if (finish){
+                if (invalidList.isNotEmpty()){
+                    showErrToast(context, "Stabla broj ${invalidList.joinToString(",")} su invalidna!")
+                }
+                if (invalidMrtvaList.isNotEmpty()){
+                    showErrToast(context, "Mrtva stabla broj ${invalidMrtvaList.joinToString(",")} su invalidna!")
+
+                }
+            }else{
                 showSuccessToast(context, "Završen krug broj $rbr.")
                 PreferencesUtils.clearWorkingCircleFromPrefs(context)
                 krugVM.setDefaultRadniKrug()
-                parentFragmentManager.popBackStack()
             }
         }
-
-
-
     }
 
     override fun showEditDeleteDialog(krug: Krug) {

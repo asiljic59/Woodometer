@@ -23,6 +23,8 @@ import com.example.woodometer.interfaces.SilviculturalTypeListener
 import com.example.woodometer.model.Dokument
 import com.example.woodometer.model.Krug
 import com.example.woodometer.model.enumerations.KeyboardField
+import com.example.woodometer.utils.GlobalUtils.lastDokument
+import com.example.woodometer.utils.GlobalUtils.lastKrug
 import com.example.woodometer.utils.KeyboardUtils
 import com.example.woodometer.utils.KeyboardUtils.currentInputField
 import com.example.woodometer.utils.NotificationsUtils
@@ -68,6 +70,7 @@ class AddCircleFragment : Fragment(), KeyboardListener,SilviculturalTypeListener
     private lateinit var dokumentVM : DokumentViewModel
     private lateinit var keyboardTextViews : HashMap<ConstraintLayout,Triple<TextInputEditText,String, KeyboardField>>
 
+    private var initialKrugHash : Int? = null
 
     private var _binding: FragmentAddCircleBinding? = null
     private val binding get() = _binding!!
@@ -89,6 +92,7 @@ class AddCircleFragment : Fragment(), KeyboardListener,SilviculturalTypeListener
         binding.gazdinskiTipLayout.setOnClickListener{setupSilviculturalTypeInput()}
 
         if(isEdit == true){
+            initialKrugHash = krugVM.trenutniKrug.value.hashCode()
             binding.createButton.text = "SAČUVAJ"
             setRadioButtons()
         }
@@ -106,20 +110,33 @@ class AddCircleFragment : Fragment(), KeyboardListener,SilviculturalTypeListener
     }
     private fun createButtonClick(){
         binding.createButton.setOnClickListener {
-                if (isValid()) {
+                if (initialKrugHash == krugVM.trenutniKrug.value.hashCode()){
+                    parentFragmentManager.popBackStack()
+                    return@setOnClickListener
+                }
+                else if (isValid()) {
                     val message = if (isEdit == true) "Sačuvan krug ${krugVM.trenutniKrug.value?.brKruga}" else
                                   "Kreiran krug ${krugVM.trenutniKrug.value?.brKruga}"
                     showSuccessToast(context,message)
                     lifecycleScope.launch {
                         ensureDocument {
                             val dokumentId = dokumentVM.trenutniDokument.value?.id!!
-                            krugVM.resetKrug(dokumentId)
-                            //cuvanje trenutnog kruga!!!
-                            krugVM.trenutniKrug.value?.let { it1 ->
-                                PreferencesUtils.saveWorkingCircleToPrefs(context,
-                                    it1.id)
+
+                            if (isEdit == true){
+                                krugVM.addKrug()
+                            }else{
+                                krugVM.resetKrug(dokumentId)
                             }
-                            krugVM.trenutniKrug.value?.let { it1 -> dokumentVM.addKrug(it1) }
+
+                            //cuvanje trenutnog kruga  AKO NIJE AZURIRANJE!!!
+                            krugVM.trenutniKrug.value?.let { it1 ->
+                                if (isEdit != true){
+                                    PreferencesUtils.saveWorkingCircleToPrefs(context,
+                                        it1.id)
+                                }
+                                dokumentVM.addKrug(it1)
+                            }
+                            lastKrug = null
                             parentFragmentManager.popBackStack()
                             if (isEdit != true){
                                 withContext(Dispatchers.Main) {

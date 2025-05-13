@@ -32,8 +32,9 @@ object ExportDataUtils {
         }
         currentFile = File(folder,fileName)
         if (currentFile.exists()) {
-            currentFile.writeText("")
+            currentFile.delete()
         }
+
         writeMetaData()
         krugovi.forEach { krug ->
             this.krug = krug
