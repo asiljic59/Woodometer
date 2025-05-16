@@ -1,6 +1,12 @@
 package com.example.woodometer.fragments
 
+import android.app.Activity
+import android.app.ActivityManager
+import android.app.AlertDialog
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.os.Parcel
 import android.util.Log
@@ -27,9 +33,11 @@ import com.example.woodometer.utils.GlobalUtils.POLOZAJ_STABLA
 import com.example.woodometer.utils.GlobalUtils.SOCIJALNI_STATUSI
 import com.example.woodometer.utils.GlobalUtils.STEPENI_SUSENJA
 import com.example.woodometer.utils.GlobalUtils.TEHNICKE_KLASE
+import com.example.woodometer.utils.GlobalUtils.rotateMode
 import com.example.woodometer.utils.NotificationsUtils
 import com.example.woodometer.utils.NotificationsUtils.showErrToast
 import com.example.woodometer.utils.NotificationsUtils.showWarningToast
+import com.example.woodometer.utils.PreferencesUtils
 import com.example.woodometer.viewmodels.DokumentViewModel
 import com.example.woodometer.viewmodels.KrugViewModel
 import com.google.android.material.button.MaterialButton
@@ -60,6 +68,9 @@ class KeyboardFragment : Fragment(),InformationItemListener {
     private lateinit var krugViewModel: KrugViewModel
     private lateinit var dokumentViewModel: DokumentViewModel
 
+    private val REQUEST_CODE_COMPASS = 1001
+
+
     private lateinit var tvInput: TextView
     private var currentInput = StringBuilder()
 
@@ -87,8 +98,7 @@ class KeyboardFragment : Fragment(),InformationItemListener {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
-        // Inflate the layout for this fragment
+            // Inflate the layout for this fragment
         val view : View = inflater.inflate(R.layout.fragment_keyboard, container, false)
         krugViewModel = ViewModelProvider(requireActivity())[KrugViewModel::class.java]
         dokumentViewModel = ViewModelProvider(requireActivity())[DokumentViewModel::class.java]
@@ -122,6 +132,14 @@ class KeyboardFragment : Fragment(),InformationItemListener {
             parentFragmentManager.popBackStack()
         }
 
+        if (field == KeyboardField.AZIMUT){
+            val compassButton = view.findViewById<MaterialButton>(R.id.compassButton)
+            compassButton.visibility = View.VISIBLE
+            compassButton.setOnClickListener{
+                openCompassApp()
+            }
+        }
+
         return view
     }
 
@@ -149,35 +167,48 @@ class KeyboardFragment : Fragment(),InformationItemListener {
             transaction.commit()
         }
 
-        if (field == KeyboardField.AZIMUT){
-            val compassButton = view.findViewById<MaterialButton>(R.id.compassButton)
-            compassButton.visibility = View.VISIBLE
-            compassButton.setOnClickListener{
-                openCompass()
-            }
-        }
+
 
     }
 
-    private fun openCompass() {
+    private fun openCompassApp() {
         val context = requireContext()
-        val packageName = "menion.android.locus.gis"
+        val pm = context.packageManager
 
-        Log.d("MyApp", "Attempting to open Locus GIS")
+        // List all exported launcher activities in Locus GIS
+        val intent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+            setPackage("menion.android.locus.gis") // Only look inside Locus GIS
+        }
 
-        val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
-        if (launchIntent != null) {
-            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val activities = pm.queryIntentActivities(intent, 0)
+
+        // Pick one that looks like a compass screen (based on name or label)
+        val compassActivity = activities.find {
+            it.activityInfo.name.contains("compass", ignoreCase = true)
+                    || it.loadLabel(pm).toString().contains("compass", ignoreCase = true)
+        } ?: activities.firstOrNull() // fallback to first activity if none found
+
+        if (compassActivity != null) {
+            val launchIntent = Intent(Intent.ACTION_MAIN).apply {
+                component = ComponentName(
+                    compassActivity.activityInfo.packageName,
+                    compassActivity.activityInfo.name
+                )
+                addCategory(Intent.CATEGORY_LAUNCHER)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
             try {
                 context.startActivity(launchIntent)
             } catch (e: Exception) {
-                Log.e("MyApp", "Failed to start Locus GIS", e)
-                Toast.makeText(context, "Failed to launch Locus GIS", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Unable to start Locus GIS", Toast.LENGTH_SHORT).show()
             }
         } else {
-            Toast.makeText(context, "Locus GIS is not installed", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Locus GIS not found", Toast.LENGTH_SHORT).show()
         }
     }
+
 
 
 

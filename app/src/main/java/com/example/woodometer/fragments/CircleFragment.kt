@@ -1,5 +1,6 @@
 package com.example.woodometer.fragments
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,10 +10,12 @@ import android.widget.ImageButton
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.replace
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.transition.Visibility
 import com.example.woodometer.R
 import com.example.woodometer.activities.MainActivity
 import com.example.woodometer.adapters.TreesAdapter
@@ -107,6 +110,9 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,
             binding.endCircleButton.visibility = View.GONE
             binding.addTreeButton.visibility = View.GONE
         }
+        if (!krugViewModel.trenutniKrug.value?.permanentna!!){
+            binding.graphicButton.visibility = View.GONE
+        }
 
 
 
@@ -187,6 +193,11 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,
             binding.legendLayout.findViewById<ImageButton>(R.id.hideLegendButton).setOnClickListener{
                 binding.legendLayout.visibility = View.GONE
             }
+            binding.graphicButton.setOnClickListener{
+                requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                parentFragmentManager.beginTransaction().replace(R.id.main,CircleGraphicFragment()).addToBackStack(null).commit()
+            }
+
             binding.trenutniKrugTextView.text = krugViewModel.trenutniKrug.value?.brKruga.toString()
 
 

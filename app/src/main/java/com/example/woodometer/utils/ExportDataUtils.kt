@@ -23,13 +23,16 @@ object ExportDataUtils {
     private val queries : StringBuilder = StringBuilder()
     fun exportDocument(dokument: Dokument,krugovi : List<Krug>,activity: Activity?) : File{
         this.dokument = dokument
-        val fileName ="${dokument.gazJedinica}${dokument.brOdeljenja}${dokument.odsek}_${dokument.korisnik}_${GlobalUtils.formatDateDocument(dokument.timestamp
-        )}.txt"
+        val krugIds = krugovi.joinToString(separator = ",") { "${it.brKruga }" }
 
-        val folder = File (activity?.filesDir, folderName)
+        val fileName ="${dokument.gazJedinica}${dokument.brOdeljenja}${dokument.odsek}_${dokument.korisnik}_${GlobalUtils.formatDateDocument(dokument.timestamp
+        )}_[$krugIds].txt"
+
+        val folder = File(activity?.filesDir, folderName)
         if (!folder.exists()) {
             folder.mkdirs()
         }
+
         currentFile = File(folder,fileName)
         if (currentFile.exists()) {
             currentFile.delete()

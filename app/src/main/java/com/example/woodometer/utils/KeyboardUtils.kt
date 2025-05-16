@@ -1,6 +1,8 @@
 package com.example.woodometer.utils
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.pm.ActivityInfo
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.FragmentManager
@@ -42,17 +44,24 @@ object KeyboardUtils {
 
         }
     }
-    fun openKeyboard(layout: ConstraintLayout,listener: KeyboardListener,
-                     parentFragmentManager : FragmentManager,
-                     keyboardTextViews: HashMap<ConstraintLayout,Triple<TextInputEditText,String, KeyboardField>> ){
+    fun openKeyboard(
+        layout: ConstraintLayout,
+        listener: KeyboardListener,
+        parentFragmentManager: FragmentManager,
+        keyboardTextViews: HashMap<ConstraintLayout, Triple<TextInputEditText, String, KeyboardField>>,
+    ) {
         val keyboardFragment = KeyboardFragment().apply {
             setKeyboardListener(listener)
-            keyboardTextViews[layout]?.let { setTitle(it.second) }
-            keyboardTextViews[layout]?.third?.let { setField(it) }
+            keyboardTextViews[layout]?.let {
+                setTitle(it.second)
+                setField(it.third)
+            }
         }
+
         parentFragmentManager.beginTransaction()
             .add(R.id.main, keyboardFragment)
             .addToBackStack(null)
             .commit()
     }
+
 }

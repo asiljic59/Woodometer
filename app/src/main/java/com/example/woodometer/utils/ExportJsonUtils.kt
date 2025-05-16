@@ -28,8 +28,10 @@ object ExportJsonUtils {
     private var dokumentDTO = DokumentDTO()
     fun exportToJson(dokument: Dokument,krugovi : List<Krug>,activity: Activity?) : File{
         this.dokument = dokument
+        val krugIds = krugovi.joinToString(separator = ",") { "${it.brKruga }" }
+
         val fileName ="${dokument.gazJedinica}${dokument.brOdeljenja}${dokument.odsek}_${dokument.korisnik}_${GlobalUtils.formatDateDocument(dokument.timestamp
-        )}.json"
+        )}_[$krugIds].json"
 
         val folder = File (activity?.filesDir, folderName)
         if (!folder.exists()) {

@@ -6,7 +6,7 @@
     android:background="#EEEEEE"
     android:gravity="center|center_horizontal"
     android:orientation="horizontal"
-    android:padding="4dp"
+    android:padding="6dp"
     android:translationY="-2dp">
 
     <!-- 1. Stablo budućnosti -->
@@ -130,6 +130,6 @@
         android:layout_height="wrap_content"
         android:layout_weight="0"
         android:background="@android:color/transparent"
-        app:srcCompat="@drawable/baseline_keyboard_arrow_down_24" />
+        app:srcCompat="@drawable/baseline_keyboard_arrow_up_24" />
 
 </LinearLayout>
