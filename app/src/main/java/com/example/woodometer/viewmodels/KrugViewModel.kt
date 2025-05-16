@@ -66,6 +66,7 @@
         val mrtvoStablo : LiveData<MrtvoStablo> get() = _trenutnoMrtvoStablo
         val biodiverzitet : LiveData<Biodiverzitet> get() = _biodiverzitet
 
+        private var poslednjaVrsta = 61
 
         suspend fun updateTrenutnoStablo() {
             withContext(Dispatchers.IO){
@@ -111,24 +112,33 @@
         fun setMrtvoStabloToEdit(item: MrtvoStablo) {
             _trenutnoMrtvoStablo.value = item // Important to copy to avoid reference issues
         }
-        //DODAVANJE NOVOG MRTVOG STABLA
-        fun addMrtvoStablo() {
 
-            viewModelScope.launch {
-                withContext(Dispatchers.IO){
-                    mrtvoStablo.value?.let { newStablo ->
-                        mrtvoStabloRepository.upsert(newStablo)
-                        val updatedList = _trenutnaMrtvaStabla.value?.toMutableList() ?: mutableListOf()
-                        // Racunamo novi redni broj tako sto uzimamo maximum iz liste +1
-                        updatedList.add(newStablo)
-                        val maxRbr = updatedList.maxOfOrNull { it.rbr } ?: 0  // If list is empty, start from 1
-                        _trenutnaMrtvaStabla.postValue(updatedList)
-                        // Update the _trenutnoMrtvoStablo LiveData
-                        _trenutnoMrtvoStablo.postValue(MrtvoStablo(rbr = maxRbr + 1,krugId = trenutniKrug.value?.id!!))
-                    }
-                }
-            }
+        fun initNewMrtvoStablo() {
+            val lista = trenutnaMrtvaStabla.value?.toMutableList() ?: mutableListOf()
+            val maxRbr = lista.maxOfOrNull { it.rbr } ?: 0
+            _trenutnoMrtvoStablo.value = MrtvoStablo(
+                rbr = maxRbr + 1,
+                krugId = trenutniKrug.value?.id ?: return,
+                vrsta = poslednjaVrsta
+            )
         }
+
+        //DODAVANJE NOVOG MRTVOG STABLA
+        suspend fun addMrtvoStablo() {
+            val newStablo = mrtvoStablo.value ?: return
+
+            poslednjaVrsta = newStablo.vrsta
+
+            withContext(Dispatchers.IO) {
+                mrtvoStabloRepository.upsert(newStablo)
+            }
+            val updatedList = _trenutnaMrtvaStabla.value?.toMutableList() ?: mutableListOf()
+            updatedList.add(newStablo)
+            _trenutnaMrtvaStabla.value = updatedList
+
+
+        }
+
         //BRISANJE MRTVOG STABLA
         fun deleteMrtvoStablo(rbr : Int){
             viewModelScope.launch {

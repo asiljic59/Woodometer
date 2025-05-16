@@ -448,7 +448,7 @@ class KeyboardFragment : Fragment(),InformationItemListener {
     }
 
     override fun informationPicked(number: Int) {
-        NotificationsUtils.showSuccessToast(context,"$field : $number")
+        NotificationsUtils.showInformationToast(context,"$title : $number")
         listener?.onEnterPressed(number.toString())
         parentFragmentManager.popBackStack()
     }

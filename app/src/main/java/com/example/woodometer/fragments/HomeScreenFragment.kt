@@ -1,16 +1,21 @@
 package com.example.woodometer.fragments
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageButton
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.replace
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.woodometer.R
 import com.example.woodometer.adapters.CircleAdapter
+import com.example.woodometer.utils.GlobalUtils.rotateMode
+import com.example.woodometer.utils.NotificationsUtils.showInformationToast
 import com.example.woodometer.utils.PreferencesUtils
 import com.example.woodometer.viewmodels.DokumentViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -65,10 +70,33 @@ class HomeScreenFragment : Fragment() {
                 ?.replace(R.id.main,DocumentsFragment())?.addToBackStack(null)?.commit()
 
         }
+        val rotationButton = view.findViewById<ImageButton>(R.id.rotationButton)
 
+        if (rotateMode){
+            rotationButton.setImageDrawable(ContextCompat.getDrawable(requireContext(),R.drawable.baseline_screen_rotation_24))
+        }else{
+            rotationButton.setImageDrawable(ContextCompat.getDrawable(requireContext(),R.drawable.baseline_screen_lock_rotation_24))
+        }
+
+        rotationButton.setOnClickListener {
+            rotationButtonClicked(view)
+        }
         return view;
     }
 
+    private fun rotationButtonClicked(view: View) {
+        val rotationButton = view.findViewById<ImageButton>(R.id.rotationButton)
+        if (rotateMode) {
+            requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            rotationButton.setImageDrawable(ContextCompat.getDrawable(requireContext(),R.drawable.baseline_screen_lock_rotation_24))
+            showInformationToast(context,"Rotacija zaključana")
+        } else{
+            requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            rotationButton.setImageDrawable(ContextCompat.getDrawable(requireContext(),R.drawable.baseline_screen_rotation_24))
+            showInformationToast(context,"Rotacija otključana")
+        }
+        rotateMode = !rotateMode
+    }
 
 
     private fun startMerenjaButtonClicked() {

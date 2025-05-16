@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="line">
+            <stroke
+                android:width="2dp"
+                android:color="#000000"
+                android:dashWidth="0dp"
+                android:dashGap="0dp"/>
+        </shape>
+    </item>
+    <item android:right="50dp"> <!-- Adjust this value based on where you want the dotted part to start -->
+        <shape android:shape="line">
+            <stroke
+                android:width="2dp"
+                android:color="#000000"
+                android:dashWidth="5dp"
+            android:dashGap="3dp"/> <!-- Space between dashes -->
+        </shape>
+    </item>
+</layer-list>

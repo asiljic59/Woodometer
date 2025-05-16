@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.example.woodometer.R
 import com.example.woodometer.activities.MainActivity
 import com.example.woodometer.databinding.FragmentAddDeadTreeBinding
@@ -21,11 +22,13 @@ import com.example.woodometer.interfaces.TreeTypeListener
 import com.example.woodometer.model.MrtvoStablo
 import com.example.woodometer.model.enumerations.KeyboardField
 import com.example.woodometer.utils.GlobalUtils
+import com.example.woodometer.utils.GlobalUtils.VRSTE_DRVECA
 import com.example.woodometer.utils.KeyboardUtils
 import com.example.woodometer.utils.KeyboardUtils.currentInputField
 import com.example.woodometer.utils.NotificationsUtils
 import com.example.woodometer.viewmodels.KrugViewModel
 import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.launch
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -86,9 +89,26 @@ class AddDeadTreeFragment : Fragment(),KeyboardListener,TreeTypeListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         createKeyboardHashMap()
+        trackTreeType()
         KeyboardUtils.setupInputKeyboardClickListeners(keyboardTextViews,parentFragmentManager,this@AddDeadTreeFragment)
 
         binding.saveButton.setOnClickListener {
+            saveTreeClicked()
+        }
+        binding.closeButton2.setOnClickListener{
+            parentFragmentManager.popBackStack()
+        }
+    }
+    private fun trackTreeType() {
+        krugVM.mrtvoStablo.observe(viewLifecycleOwner) { mrtvoStablo ->
+            val label = VRSTE_DRVECA.find { it.first == mrtvoStablo.vrsta }?.second
+            binding.vrstaDrvetaButton.text = label ?: "Nepoznata vrsta"
+        }
+    }
+
+
+    private fun saveTreeClicked(){
+        lifecycleScope.launch {
             if (isDeadTreeValid()) {
                 if (isAddition == true){krugVM.addMrtvoStablo()}
                 else{krugVM.editMrtvoStablo()}
@@ -97,10 +117,8 @@ class AddDeadTreeFragment : Fragment(),KeyboardListener,TreeTypeListener {
                 NotificationsUtils.showErrToast(context,"Morate uneti položaj i prečnik mrtvog stabla!")
             }
         }
-        binding.closeButton2.setOnClickListener{
-            parentFragmentManager.popBackStack()
-        }
     }
+
     private fun createKeyboardHashMap(){
         keyboardTextViews = hashMapOf(
             binding.precnikLayout to Triple(binding.precnikTextView,"Prečnik",KeyboardField.PRECNIK_MRTVO_STABLO),
@@ -134,14 +152,10 @@ class AddDeadTreeFragment : Fragment(),KeyboardListener,TreeTypeListener {
         vrstaButton.setOnClickListener {
             val treeTypesFragment = TreeTypesFragment().apply {
                 setListener(this@AddDeadTreeFragment)
+                krugVM.mrtvoStablo.value?.let { it1 -> setStartTreeType(it1.vrsta) }
             }
             treeTypesFragment.show(parentFragmentManager, null)
         }
-        vrstaButton.text =
-            GlobalUtils.VRSTE_DRVECA.filter { it.first ==
-                krugVM.mrtvoStablo.value?.vrsta
-            }.first().second
-
     }
 
     fun isDeadTreeValid() : Boolean{

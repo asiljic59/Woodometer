@@ -1,13 +1,13 @@
 package com.example.woodometer.fragments
 
-import android.media.AudioManager
-import android.media.ToneGenerator
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageButton
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -32,10 +32,10 @@ import com.example.woodometer.utils.KeyboardUtils.setupInputKeyboardClickListene
 import com.example.woodometer.utils.NotificationsUtils
 import com.example.woodometer.utils.NotificationsUtils.showErrToast
 import com.example.woodometer.utils.NotificationsUtils.showSuccessToast
+import com.example.woodometer.utils.NotificationsUtils.vibratePhone
 import com.example.woodometer.utils.PreferencesUtils
 import com.example.woodometer.viewmodels.KrugViewModel
 import com.google.android.material.textfield.TextInputEditText
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 
@@ -49,7 +49,8 @@ private const val ARG_PARAM2 = "param2"
  * Use the [CircleFragment.newInstance] factory method to
  * c.reate an instance of this fragment.
  */
-class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListener,CircleListener {
+class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,
+    TreeListener,CircleListener {
 
     private var _binding: FragmentCircleBinding? = null
     private val binding get() = _binding!! // Safe to use after onCreateView
@@ -73,6 +74,10 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
     private lateinit var krugViewModel: KrugViewModel
 
     private var addTreeMode : Boolean = false
+
+
+    private var doznakaMode = false
+    private var isToggleVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,6 +107,8 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
             binding.endCircleButton.visibility = View.GONE
             binding.addTreeButton.visibility = View.GONE
         }
+
+
 
         return binding.root
     }
@@ -139,9 +146,16 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
             //prikaz stabla u scrollu/recycler view
             setupTreesRecyclerView()
 
+            binding.fabPicker.setOnClickListener{
+                isToggleVisible = !isToggleVisible
+                setupFabModeButton()
+            }
+
             // Setup keyboard
             createKeyboardHashMap()
             setupInputKeyboardClickListeners(keyboardTextViews,parentFragmentManager,this@CircleFragment)
+
+            setupFabModeButton()
 
             binding.mrtvaStablaButton.setOnClickListener{
                 parentFragmentManager.beginTransaction().replace(R.id.main,DeadTreesFragment()).addToBackStack(null).commit()
@@ -158,7 +172,23 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
             binding.endCircleButton.setOnClickListener{
                 endCircleButtonClicked()
             }
+            binding.btnDoznaka.setOnClickListener{
+                doznakaMode = true
+                setDoznakaMode()
+                isToggleVisible = false
+                turnToggleOff()
+            }
+            binding.btnNormal.setOnClickListener{
+                doznakaMode = false
+                setDoznakaMode()
+                isToggleVisible = false
+                turnToggleOff()
+            }
+            binding.legendLayout.findViewById<ImageButton>(R.id.hideLegendButton).setOnClickListener{
+                binding.legendLayout.visibility = View.GONE
+            }
             binding.trenutniKrugTextView.text = krugViewModel.trenutniKrug.value?.brKruga.toString()
+
 
         }
 
@@ -181,6 +211,56 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
         }
 
     }
+
+    private fun setupFabModeButton() {
+        if (isToggleVisible) {
+            turnToggleOn()
+        } else {
+            turnToggleOff()
+        }
+    }
+    private fun turnToggleOn(){
+        val toggleGroup = binding.toggleGroup
+        binding.fabPicker.alpha = 1f
+        binding.fabPicker.icon = ContextCompat.getDrawable(requireContext(), R.drawable.baseline_keyboard_arrow_down_24)
+        setupToggleButtons()
+        toggleGroup.visibility = View.VISIBLE
+        toggleGroup.translationY = toggleGroup.height.toFloat() + 100f // extra push off-screen
+        toggleGroup.alpha = 0f
+        toggleGroup.animate()
+            .translationY(0f)
+            .alpha(1f)
+            .setDuration(300)
+            .start()
+    }
+    private fun turnToggleOff(){
+        val toggleGroup = binding.toggleGroup
+        binding.fabPicker.alpha = 0.6f
+        binding.fabPicker.icon = ContextCompat.getDrawable(requireContext(), R.drawable.baseline_keyboard_arrow_up_24)
+        toggleGroup.animate()
+            .translationY(toggleGroup.height.toFloat() + 200f)
+            .alpha(0f)
+            .setDuration(300)
+            .withEndAction {
+                toggleGroup.visibility = View.GONE
+            }
+            .start()
+    }
+    private fun setupToggleButtons(){
+        if (doznakaMode){
+            binding.btnDoznaka.background.setTint(resources.getColor(R.color.black))
+            binding.btnDoznaka.setTextColor(resources.getColor(R.color.light_gray))
+            binding.btnNormal.background.setTint(resources.getColor(R.color.light_gray))
+            binding.btnNormal.setTextColor(resources.getColor(R.color.black))
+        }else{
+            binding.btnNormal.background.setTint(resources.getColor(R.color.black))
+            binding.btnNormal.setTextColor(resources.getColor(R.color.light_gray))
+            binding.btnDoznaka.background.setTint(resources.getColor(R.color.light_gray))
+            binding.btnDoznaka.setTextColor(resources.getColor(R.color.black))
+        }
+    }
+
+
     private fun setMode(){
         val stabla : MutableList<Stablo> = krugViewModel.stablaKruga.value ?: mutableListOf()
         if (!krugViewModel.isRadniKrug()){ return }
@@ -240,6 +320,17 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
             krugViewModel.resetStablo()
             initialStabloHash = krugViewModel.getStabloHash()
             addTreeMode()
+            doznakaMode = false
+            setDoznakaMode()
+        }
+    }
+
+    private fun setDoznakaMode(){
+        adapter.changeDoznakaMode(doznakaMode)
+        if (doznakaMode){
+            binding.legendLayout.visibility = View.VISIBLE
+        }else{
+            binding.legendLayout.visibility = View.GONE
         }
     }
 
@@ -368,4 +459,5 @@ class CircleFragment : Fragment(), KeyboardListener,TreeTypeListener,TreeListene
     override fun showEditDeleteDialog(krug: Krug) {
         TODO("Not yet implemented")
     }
+
 }

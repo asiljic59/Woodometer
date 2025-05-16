@@ -15,4 +15,10 @@
     <color name="forest_green">#556B2F</color>
     <color name="line_color">#206808</color>
     <color name="highlight_color">#FF9800</color>
+    <color name="stablo_buducnosti">#4CAF50</color>
+    <color name="konkurent">#FFC107</color>
+    <color name="indiferentno">#889190</color>
+    <color name="zrelo_stablo">#9d654d</color>
+    <color name="loseg_kvaliteta">#F44336</color>
+    <color name="selected_tree">#2196F3</color>
 </resources>

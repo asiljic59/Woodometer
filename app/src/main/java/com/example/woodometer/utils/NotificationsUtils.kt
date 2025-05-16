@@ -28,6 +28,11 @@ object NotificationsUtils {
         vibratePhone(context!!)
     }
 
+    fun showInformationToast(context: Context?,message: String){
+        showToast(context,message,R.drawable.baseline_info_24)
+        vibratePhone(context!!)
+    }
+
 
     fun showToast(context: Context?,message : String,iconRes:Int){
         val inflater = LayoutInflater.from(context)

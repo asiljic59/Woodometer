@@ -2,6 +2,7 @@ package com.example.woodometer.repository
 
 import com.example.woodometer.Woodometer
 import com.example.woodometer.model.MrtvoStablo
+import com.example.woodometer.model.Stablo
 import java.util.UUID
 
 class MrtvoStabloRepository : Repository<MrtvoStablo,UUID> {
@@ -10,7 +11,7 @@ class MrtvoStabloRepository : Repository<MrtvoStablo,UUID> {
         mrtvoStabloDao.add(*item)
     }
 
-    override suspend fun upsert(vararg item: MrtvoStablo) {
+    override suspend fun upsert(vararg item: MrtvoStablo){
         mrtvoStabloDao.upsert(*item)
     }
 

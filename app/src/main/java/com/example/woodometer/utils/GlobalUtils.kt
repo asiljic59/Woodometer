@@ -22,6 +22,8 @@ object GlobalUtils {
     var lastDokument : UUID? = null
     var lastKrug : UUID? = null
 
+    var rotateMode = true
+
     val  VRSTE_DRVECA = listOf(
         11 to "Bela vrba",      // 11 → Bela vrba
         12 to "Bademasta vrba", // 12 → Bademasta vrba

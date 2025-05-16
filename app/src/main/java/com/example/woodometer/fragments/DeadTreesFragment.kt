@@ -88,6 +88,7 @@ class DeadTreesFragment : Fragment(),TreeListener {
     }
 
     private fun addTreeButtonClicked(view : View){
+        krugViewModel.initNewMrtvoStablo()
         val addTreeFragment = AddDeadTreeFragment().apply {
             setAddition(true)
         }
